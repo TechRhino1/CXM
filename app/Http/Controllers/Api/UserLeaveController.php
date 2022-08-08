@@ -38,7 +38,17 @@ class UserLeaveController extends Controller
      */
     public function store(StoreUserLeavesRequest $request)
     {
-        $userLeave = UserLeaves::create($request->all());
+        $UserID = auth()-> user()-> id;
+        
+        $userLeave = UserLeaves::create(
+            [
+                'UserID' => $UserID,
+                'DateFrom' => $request->DateFrom,
+                'DateTo' => $request->DateTo,
+                'Reason' => $request->Reason,
+                
+            ]
+        );
         if($userLeave) {
             return response()->json([
                 'success' => true,
@@ -48,7 +58,7 @@ class UserLeaveController extends Controller
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'User Leave creation failed'
+                'message' => 'Leave creation failed'
             ], 400);
         }
         
@@ -83,23 +93,49 @@ class UserLeaveController extends Controller
      * @param  \App\Models\UserLeaves  $userLeaves
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, UserLeaves $userLeaves)
+    public function update(StoreUserLeavesRequest $request, UserLeaves $userLeaves)
     {
-        $userLeaves = UserLeaves::find($request->id);
+       // $userLeaves = UserLeaves::find($request->id);
+       //get login user id form tokens
+         $userId = auth()->user()->id;
+         // print_r($request->UserID) ;
+         // find user leave by user id and approve status is not 1 (approved)
+            $userLeave = UserLeaves::where('UserID',$userId)->first();
+         
+        // print_r($userLeave);
+       //  die;
+        
+            if($userId == $request->UserID){
+                if($userLeave->update($request->all())){
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'User Leave updated successfully',
+                        'userLeave' => $userLeave
+                    ], 200);
+                }
+                return response()->json([
+                    'message' => 'User Leave not updated',
+                    'error' => error_get_last()
+                    
+                ], 400);
+            }
+            else{
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User Leave updation failed'
+                ], 400);
+            }
+              
+           
 
-        if($userLeaves->update($request->all())) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User Leave updated successfully',
-                'userLeave' => $userLeaves
-            ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave update failed'
-            ], 400);
         }
-    }
+   
+    ///for admins
+    // $userLeaves->update([
+    //     'ApprovalStatus' => $request->ApprovalStatus,
+    //     'ApprovedUserID' => $userId,
+    //     'ApprovedDate' => date('Y-m-d H:i:s'),
+    //     'ApprovalComments' => $request->ApprovalComments]);
 
     /**
      * Remove the specified resource from storage.

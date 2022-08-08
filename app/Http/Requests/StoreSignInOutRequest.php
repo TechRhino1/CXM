@@ -24,12 +24,12 @@ class StoreSignInOutRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'user_id' => 'required',
+            ///'user_id' => 'required',
             // 'user_id' => 'required|exists:users,id',
-            'EVENTDATE' => 'required',
-            'SIGNIN_TIME' => 'required',
-            'CREATEDSIGNIN_DATE' => 'required',
-            'CREATEDSIGNIN_TIME' => 'required',
+            // 'EVENTDATE' => 'required',
+            // 'SIGNIN_TIME' => 'required',
+            // 'CREATEDSIGNIN_DATE' => 'required',
+            // 'CREATEDSIGNIN_TIME' => 'required',
             'SIGNOUT_TIME' => '',
             'CREATEDSIGNOUT_DATE' => '',
             'CREATEDSIGNOUT_TIME' => '',

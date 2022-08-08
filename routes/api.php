@@ -31,26 +31,25 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 
 // route to Tasks
-Route::get('/Tasks', [PostController::class, 'index']);
-Route::post('/Tasks', [PostController::class, 'store']);
-Route::delete('/Tasks/{id}', [PostController::class, 'destroy']);
-Route::put('/Tasks/{id}', [PostController::class, 'update']);
+Route::get('/tasks', [PostController::class, 'index']);
+Route::post('/tasks', [PostController::class, 'store']);
+Route::delete('/tasks/{id}', [PostController::class, 'destroy']);
+Route::put('/tasks/{id}', [PostController::class, 'update']);
 
 //route to Projects
-Route::get('/Projects', [ProjectController::class, 'index']);
-Route::post('/Projects', [ProjectController::class, 'store']);
-Route::delete('/Projects/{id}', [ProjectController::class, 'destroy']);
-Route::put('/Projects/{id}', [ProjectController::class, 'update']); 
+Route::get('/projects', [ProjectController::class, 'index']);
+Route::post('/projects', [ProjectController::class, 'store']);
+Route::delete('/projects/{id}', [ProjectController::class, 'destroy']);
+Route::put('/projects/{id}', [ProjectController::class, 'update']); 
 
 //route to user leaves
 Route::get('/userleaves/{id}', [UserLeaveController::class, 'userleaveprofile']);
-Route::get('/UserLeaves', [UserLeaveController::class, 'index']);
-Route::post('/UserLeaves', [UserLeaveController::class, 'store']);
-Route::delete('/UserLeaves/{id}', [UserLeaveController::class, 'destroy']);
-Route::put('/UserLeaves/{id}', [UserLeaveController::class, 'update']);
+Route::get('/userleaves', [UserLeaveController::class, 'index']);
+Route::post('/userleaves', [UserLeaveController::class, 'store']);
+Route::delete('/userleaves/{id}', [UserLeaveController::class, 'destroy']);
 
 //route to sign in out
-Route::delete('/SignInOuts/{id}', [SignInOutController::class, 'destroy']);
+Route::delete('/signinouts/{id}', [SignInOutController::class, 'destroy']);
 
 
 ////login and register for adminController
@@ -61,10 +60,10 @@ Route::group(['prefix' => 'admin'], function ($router) {
 
 Route::group(['middleware' => ['jwt.role:0','jwt.auth'],'prefix' => 'user'], function($router){
     
-    Route::put('/SignInOuts/{id}', [SignInOutController::class, 'update']);
-    Route::get('/SignInOuts', [SignInOutController::class, 'index']);
+    Route::put('/signinouts/{id}', [SignInOutController::class, 'update']);
+    Route::get('/signinouts', [SignInOutController::class, 'index']);
     Route::post('/logout', [UserController::class, 'logout']);
-    Route::get('/user-profile', [AdminController::class, 'userProfile']);
+    Route::get('/userprofile', [AdminController::class, 'userProfile']);
 } );
 
 ////login and register for userController
@@ -75,12 +74,13 @@ Route::group(['prefix' => 'user'], function ($router) {
 
 Route::group(['middleware' => ['jwt.role:1','jwt.auth'],'prefix' => 'user'], function($router){
     
+    Route::put('/userleaves', [UserLeaveController::class, 'update']);
     Route::post('/signinouts', [SignInOutController::class, 'store']);
     
     Route::post('/logout', [UserController::class, 'logout']);
 
 
-    Route::get('/user-profile', [UserController::class, 'userProfile']);
+    Route::get('/userprofile', [UserController::class, 'userProfile']);
 
 } );
 

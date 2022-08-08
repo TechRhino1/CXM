@@ -25,14 +25,14 @@ class StoreUserLeavesRequest extends FormRequest
     {
         return [
            
-            'UserID' => 'required',
+            //'UserID' => 'required',
             'DateFrom' => 'required',
             'DateTo' => 'required',
             'Reason' => 'required',
-            'ApprovalStatus' => 'required',
-            'ApprovedUserID' => 'required',
-            'ApprovedDate' => 'required',
-            'ApprovalComments' => 'required',
+            'ApprovalStatus' => '',
+            'ApprovedUserID' => '',
+            'ApprovedDate' => '',
+            'ApprovalComments' => '',
         
         ];
     }

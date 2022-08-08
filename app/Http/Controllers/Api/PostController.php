@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoretaskRequest;
 use App\Models\Tasks;
+use App\Models\SignInOut;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
 
@@ -39,14 +40,41 @@ class PostController extends Controller
      */
     public function store(StoretaskRequest $request)
     {
+        $user_id = auth()-> user()-> id;
+        $date = date('Y-m-d');
+
+
          
-        $task = tasks::create($request->all());
+        $task = tasks::create([
+            //'user_id' => $user_id,
+            'Title' => $request->title,
+            'Description' => $request->description,
+            'ProjectID' => $request->project_id,
+            'CreaterID' => $user_id,
+            'EstimatedDate' => $date,
+            'EstimatedTime' => $request->estimated_time,
+            'Priority' => $request->priority,
+            'CurrentStatus' => $request->current_status,
+            'CompletedDate' =>$request->completed_date,
+            'CompletedTime' => $request->completed_time,
+            'created_at' => $date,
+            'updated_at' => $date,
+        ]);
         return response()->json([
             'success' => true,
             'message' => 'Task created successfully',
             'task' => $task
         
         ], 200);
+      //UPDATE signinout
+      $data = $request->estimated_time;
+      $data = str_replace(':','.',$data);
+      if (!(strpos($data, '.') !== false)) $data = $data.'.0';
+
+		$d = explode(".", $data);
+
+        $totalmanmins = $d[0] * 60 + $d[1];         
+      signinout::where('user_id',$user_id)->where('EVENTDATE',$date)->update(['TotalTaskMins' => $totalmanmins]);
     }
 
     /**
@@ -90,9 +118,8 @@ class PostController extends Controller
             ], 200);
         }
         return response()->json([
-            'success' => false,
             'message' => 'Task not updated',
-            'task' => $tasks,
+            
             'error' => error_get_last()
             
         ], 400);
