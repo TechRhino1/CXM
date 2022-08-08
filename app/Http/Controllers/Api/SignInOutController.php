@@ -122,7 +122,7 @@ class SignInOutController extends Controller
                 'message' => 'You need to sign in first'
             ], 200);
     }elseif($request->SIGNOUT_TIME == '00:00'){
-        //TotalMins =     (SIGNOUT_TIME - SIGNIN_TIME) / 60
+    
         $TotalMins = (strtotime($request->SIGNOUT_TIME) - strtotime($request->SIGNIN_TIME)) / 60;
         $signInOut->SIGNOUT_TIME = date('H:i:s');
         $signInOut->TOTAL_MINS = $TotalMins;
@@ -156,7 +156,20 @@ class SignInOutController extends Controller
        //only admin can update sign in out
 
         if(auth()->user()->role == 'admin' || auth()->user()->role == '0'){
-            $signInOut->update($request->all());
+            $UserID = $request->user_id;
+            $signInOut->update(
+                [ 
+                    'user_id' => $UserID,
+                    'EVENTDATE' => date('Y-m-d'),
+                    'SIGNIN_TIME' => date('H:i:s'),
+                    'CREATEDSIGNIN_DATE' => date('Y-m-d'),
+                    'CREATEDSIGNIN_TIME' => date('H:i:s'),
+                    // 'SIGNOUT_TIME' => date('H:i:s'),
+                    // 'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
+                    // 'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
+                    // 'TotalMins' =>  $TotalMins,
+                 ]
+            );
             return response()->json([
                 'success' => true,
                 'message' => 'Sign In updated successfully',

@@ -66,7 +66,7 @@ class PostController extends Controller
             'task' => $task
         
         ], 200);
-      //UPDATE signinout
+      //UPDATE TotalTaskMins
       $data = $request->estimated_time;
       $data = str_replace(':','.',$data);
       if (!(strpos($data, '.') !== false)) $data = $data.'.0';
