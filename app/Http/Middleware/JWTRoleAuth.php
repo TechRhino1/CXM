@@ -21,10 +21,10 @@ class JWTRoleAuth extends BaseMiddleware
         try{
             $token_role = $this->auth->parseToken()->getClaim('role');
         }catch (JWTException $e){
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([$e->getMessage()], 401);
             }
         if($token_role != $role){
-            return response()->json(['error' => 'Unauthorized User'], 404);
+            return response()->json(['error' => 'User Not Authorized'], 404);
         }
         return $next($request);
         // if (! $token = $this->auth->setRequest($request)->getToken()) {

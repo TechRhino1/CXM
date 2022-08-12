@@ -93,4 +93,5 @@ class AdminController extends Controller
             'user' => auth()->user()
         ]);
     }
+    
 }

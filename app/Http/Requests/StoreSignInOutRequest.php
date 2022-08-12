@@ -30,11 +30,11 @@ class StoreSignInOutRequest extends FormRequest
             // 'SIGNIN_TIME' => 'required',
             // 'CREATEDSIGNIN_DATE' => 'required',
             // 'CREATEDSIGNIN_TIME' => 'required',
-            'SIGNOUT_TIME' => '',
-            'CREATEDSIGNOUT_DATE' => '',
-            'CREATEDSIGNOUT_TIME' => '',
-            'TotalMins' => '',
-            'TotalTaskMins' => '',
+            // 'SIGNOUT_TIME' => '',
+            // 'CREATEDSIGNOUT_DATE' => '',
+            // 'CREATEDSIGNOUT_TIME' => '',
+            // 'TotalMins' => '',
+            // 'TotalTaskMins' => '',
         
         ];
 

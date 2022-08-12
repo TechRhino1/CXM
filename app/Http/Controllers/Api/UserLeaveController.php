@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserLeavesRequest;
 use App\Models\UserLeaves;
+use Error;
 use Illuminate\Http\Request;
-
+use App\Traits\ApiResponser;
 class UserLeaveController extends Controller
 {
+    use ApiResponser;
     /**
      * Display a listing of the resource.
      *
@@ -16,8 +18,12 @@ class UserLeaveController extends Controller
      */
     public function index()
     {
+        try{
         $userLeaves = UserLeaves::all();
-        return response()->json($userLeaves);
+        return $this->success($userLeaves ,'User Leave data List');
+        }catch(\Throwable $e){
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -38,7 +44,8 @@ class UserLeaveController extends Controller
      */
     public function store(StoreUserLeavesRequest $request)
     {
-        $UserID = auth()-> user()-> id;
+        try{
+        $UserID = auth()->user()->id;
         
         $userLeave = UserLeaves::create(
             [
@@ -46,20 +53,18 @@ class UserLeaveController extends Controller
                 'DateFrom' => $request->DateFrom,
                 'DateTo' => $request->DateTo,
                 'Reason' => $request->Reason,
-                
+                'AppurvalStatus' => $request->ApprovalStatus,
+
             ]
         );
         if($userLeave) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User Leave created successfully',
-                'userLeave' => $userLeave
-            ], 200);
+            return $this->success($userLeave,'User Leave Created Successfully', 201);
         } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave creation failed'
-            ], 400);
+            return  $this->error('User Leave Not Created', 500);
+        }
+
+        }catch(\Throwable $e ){
+            return $this-> error($e->getMessage(),400);
         }
         
     }
@@ -93,42 +98,34 @@ class UserLeaveController extends Controller
      * @param  \App\Models\UserLeaves  $userLeaves
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreUserLeavesRequest $request, UserLeaves $userLeaves)
+    public function update(StoreUserLeavesRequest $request, UserLeaves $userLeaves ,$id )
     {
-       // $userLeaves = UserLeaves::find($request->id);
-       //get login user id form tokens
+       try{
          $userId = auth()->user()->id;
-         // print_r($request->UserID) ;
-         // find user leave by user id and approve status is not 1 (approved)
-            $userLeave = UserLeaves::where('UserID',$userId)->first();
-         
-        // print_r($userLeave);
-       //  die;
         
-            if($userId == $request->UserID){
+            $userLeave = UserLeaves::where('id',$id)->where('UserID',$userId)->first();
+            if($userId ==  $userLeave->UserID ){
                 if($userLeave->update($request->all())){
-                    return response()->json([
-                        'success' => true,
+                    return $this->success([
                         'message' => 'User Leave updated successfully',
                         'userLeave' => $userLeave
-                    ], 200);
+                    ],200);
                 }
-                return response()->json([
-                    'message' => 'User Leave not updated',
-                    'error' => error_get_last()
-                    
-                ], 400);
+                return $this->error('User Leave not updated',500);
             }
             else{
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User Leave updation failed'
-                ], 400);
+                return $this->error('You are not authorized to update this leave', 500);
             }
-              
-           
 
+
+       
+        
+           
         }
+        catch(\Throwable $e ){
+            return $this->error($e->getMessage(),400);
+        }
+    }
    
     ///for admins
     // $userLeaves->update([
@@ -145,30 +142,31 @@ class UserLeaveController extends Controller
      */
     public function destroy($id)
     {
+        try{
         $userLeave = UserLeaves::find($id);
         if($userLeave->delete()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User Leave deleted successfully'
-            ], 200);
+            return $this->success($userLeave,'User Leave Deleted Successfully', 201);
         } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'User Leave deletion failed'
-            ], 400);
+            return $this->error('User Leave Not Deleted', 500);
         }
+    }
+    catch(\Throwable $e ){
+        return $this->error($e->getMessage(),400);
+    }
     }
     public function userleaveprofile($id)
     {
+        try{
         if($id !== null) {
-            $userLeave = UserLeaves::find($id);
-            return response()->json($userLeave);
+            $userLeave = UserLeaves::where('UserID', $id)->get();
+            return $this->success($userLeave,'User Leave Profile', 201);
         } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'User Leave not found',
-            ], 400);
+            return $this->error('User Leave Not Found', 404);
         }
         
+    }
+    catch(\Throwable $e ){
+        return $this->error($e->getMessage(),400);
+    }
     }
 }

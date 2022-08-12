@@ -55,9 +55,16 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
-       // return ['role' =>'User' ];
        return [
         'role' => $this->role,
     ];
     }
+
+    public static function getRole($email)
+    {
+        $user = User::where('email', $email)->first();
+        return $user->role;
+    }
+    
+   
 }

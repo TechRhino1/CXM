@@ -8,9 +8,11 @@ use App\Models\SignInOut;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\ApiResponser;
 
 class SignInOutController extends Controller
 {
+    use ApiResponser;
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +20,12 @@ class SignInOutController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $signInOuts = SignInOut::all();
+            return $this->success($signInOuts , message: 'retrieved successfully',status:200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -39,46 +46,31 @@ class SignInOutController extends Controller
      */
     public function store(StoreSignInOutRequest $request)
     {
-
-        //if user allready signed in,then show error message you allready signed in today you can't sign in again
-        // print_r($data->get()->count());
-        // print_r($data->get()->count() > 0);
-        // print_r(date('Y-m-d'));
-       //get user id from token
-        $UserID = auth()-> user()-> id;
-        $data = SignInOut::where('user_id',$UserID)->where('EVENTDATE',date('Y-m-d'))->get(); 
-        if($data->count() > 0){
-            return response()->json([
-                'success' => false,
-                'message' => 'You allready signed in today you can\'t sign in again'
-            ], 200);
-        }
-        else{
-            $signInOut = SignInOut::create(
-                [
-                    'user_id' => $UserID,
-                    'EVENTDATE' => date('Y-m-d'),
-                    'SIGNIN_TIME' => date('H:i:s'),
-                    'CREATEDSIGNIN_DATE' => date('Y-m-d'),
-                    'CREATEDSIGNIN_TIME' => date('H:i:s'),
-                    // 'SignInStatus' => '1',
-                    // 'SignOutStatus' => '0',
-                ]
-            );
-            if($signInOut) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Sign In Out created successfully',
-                    'signInOut' => $signInOut
-                ], 200);
+        try {
+            $UserID = auth()->user()->id;
+            $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
+            if ($data->count() > 0) {
+                return $this->error('You allready signed in today you cannot sign in again please contact your organization', 401);
             } else {
-                return response()->json([
-                    'success' => false,
-                ], 200);
-            }
-        }
-       
+                $signInOut = SignInOut::create(
+                    [
+                        'user_id' => $UserID,
+                        'EVENTDATE' => date('Y-m-d'),
+                        'SIGNIN_TIME' => date('H:i:s'),
+                        'CREATEDSIGNIN_DATE' => date('Y-m-d'),
+                        'CREATEDSIGNIN_TIME' => date('H:i:s'),
 
+                    ]
+                );
+                if ($signInOut) {
+                    return $this->success( $signInOut,'Sign In created successfully', 201);
+                } else {
+                    return $this->error('Sign In creation failed', 500);
+                }
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
     }
 
     /**
@@ -112,78 +104,69 @@ class SignInOutController extends Controller
      */
     public function update(Request $request, SignInOut $signInOut)
     {
-      //check if user allready signed in
+        try {
+            if (auth()->user()->role != '0') {
 
-        $UserID = auth()-> user()-> id;
-        $data = SignInOut::where('user_id',$UserID)->where('EVENTDATE',date('Y-m-d'))->get();
-        if(!$data->count() > 0){
-            return response()->json([
-                'success' => false,
-                'message' => 'You need to sign in first'
-            ], 200);
-    }elseif($request->SIGNOUT_TIME == '00:00'){
-    
-        $TotalMins = (strtotime($request->SIGNOUT_TIME) - strtotime($request->SIGNIN_TIME)) / 60;
-        $signInOut->SIGNOUT_TIME = date('H:i:s');
-        $signInOut->TOTAL_MINS = $TotalMins;
-        $signInOut->SIGNOUT_DATE = date('Y-m-d');
-      
-        $signInOut->update(
-            [
-                'SIGNOUT_TIME' => date('H:i:s'),
-                'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
-                'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
-                'TotalMins' =>  $TotalMins,
-                
-              
-            ]
-        );
-        if($signInOut) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Sign Out successfully',
-                'signInOut' => $signInOut
-            ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-            ], 200);
+                $UserID = auth()->user()->id;
+                $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
+                if (!$data->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You need to sign in first'
+                    ], 200);
+                } elseif ($request->SIGNOUT_TIME == '00:00') {
+
+                    $TotalMins = (strtotime($request->SIGNOUT_TIME) - strtotime($request->SIGNIN_TIME)) / 60;
+                    $signInOut->SIGNOUT_TIME = date('H:i:s');
+                    $signInOut->TOTAL_MINS = $TotalMins;
+                    $signInOut->SIGNOUT_DATE = date('Y-m-d');
+
+                    $signInOut->update(
+                        [
+                            'SIGNOUT_TIME' => date('H:i:s'),
+                            'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
+                            'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
+                            'TotalMins' =>  $TotalMins,
+                        ]
+                    );
+                    if ($signInOut) {
+                        return $this->success('Sign Out successfully', $signInOut, 201);
+                    } else {
+                        return $this->error('Sign Out failed', 500);
+                    }
+                }
+            } elseif (auth()->user()->role == '0') { //only admin can update sign in out
+
+                $UserID = $request->user_id;
+                $signInOut->update(
+                    [
+                        'user_id' => $UserID,
+                        'EVENTDATE' => date('Y-m-d'),
+                        'SIGNIN_TIME' => date('H:i:s'),
+                        'CREATEDSIGNIN_DATE' => date('Y-m-d'),
+                        'CREATEDSIGNIN_TIME' => date('H:i:s'),
+                        // 'SIGNOUT_TIME' => date('H:i:s'),
+                        // 'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
+                        // 'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
+                        // 'TotalMins' =>  $TotalMins,
+                    ]
+                );
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sign In updated successfully by ' . auth()->user()->name,
+
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to update this sign in out'
+                ], 200);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
-
-
-
-        
-       //only admin can update sign in out
-
-        if(auth()->user()->role == 'admin' || auth()->user()->role == '0'){
-            $UserID = $request->user_id;
-            $signInOut->update(
-                [ 
-                    'user_id' => $UserID,
-                    'EVENTDATE' => date('Y-m-d'),
-                    'SIGNIN_TIME' => date('H:i:s'),
-                    'CREATEDSIGNIN_DATE' => date('Y-m-d'),
-                    'CREATEDSIGNIN_TIME' => date('H:i:s'),
-                    // 'SIGNOUT_TIME' => date('H:i:s'),
-                    // 'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
-                    // 'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
-                    // 'TotalMins' =>  $TotalMins,
-                 ]
-            );
-            return response()->json([
-                'success' => true,
-                'message' => 'Sign In updated successfully',
-                'signInOut' => $signInOut
-            ], 200);
-        }else{
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not authorized to update this sign in out'
-            ], 200);
-        }
-
     }
-}
+
     /**
      * Remove the specified resource from storage.
      *
@@ -192,16 +175,29 @@ class SignInOutController extends Controller
      */
     public function destroy(SignInOut $signInOut, Request $request)
     {
-       
-        //only admin can delete sign in out
-        if($request->user()->role === 'admin' || $request->user()->role === '1'){
-            $signInOut->delete();
-            return response()->json(['success' => 'You have successfully deleted your sign in out.'], 200);
-        }else{
-            return response()->json(['error' => 'You are not authorized to delete this sign in out.'], 400);
+        try {
+            //only admin can delete sign in out
+            if ($request->user()->role === '1') {
+                $signInOut->delete();
+                return $this-> success('Sign In deleted successfully', $signInOut, 200);
+            } else {
+                return $this->error('You are not authorized to delete this sign in out', 401);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getsignioutbyuserid()
+    { //get sign in out by user id
+        try {
+            $UserID = auth()->user()->id;
+            $data = SignInOut::where('user_id', $UserID)->get();
+            
+                return $this->success($data);
+            
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
 
     }
-
-
 }

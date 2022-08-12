@@ -29,10 +29,10 @@ class StoreUserLeavesRequest extends FormRequest
             'DateFrom' => 'required',
             'DateTo' => 'required',
             'Reason' => 'required',
-            'ApprovalStatus' => '',
-            'ApprovedUserID' => '',
-            'ApprovedDate' => '',
-            'ApprovalComments' => '',
+            'ApprovalStatus' => 'required',
+            // 'ApprovedUserID' => '',
+            // 'ApprovedDate' => '',
+            // 'ApprovalComments' => '',
         
         ];
     }

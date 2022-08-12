@@ -23,6 +23,7 @@ class StoretaskRequest extends FormRequest
      */
     public function rules()
     {
+        try{
         return [
             'Title' => 'required|string|max:255',
             'Description' => 'required|string|max:255',
@@ -32,12 +33,15 @@ class StoretaskRequest extends FormRequest
             'EstimatedTime' => 'required',
             'Priority' => 'required',
             'CurrentStatus' => 'required',
-            'InitiallyAssignedToID' => 'required|integer',
-            'CurrentlyAssignedToID' => 'required|integer',
+            // 'InitiallyAssignedToID' => 'required|integer',
+            // 'CurrentlyAssignedToID' => 'required|integer',
             'CompletedDate' => 'required',
             'CompletedTime' => 'required',
-            'ParentID' => 'required|integer',
+            // 'ParentID' => 'required|integer',
        
         ];
+        }catch(\Throwable $e){
+            return $this->error($e->getMessage(), 500);
+        }
     }
 }

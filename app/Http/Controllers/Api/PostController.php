@@ -8,9 +8,11 @@ use App\Models\Tasks;
 use App\Models\SignInOut;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
+use App\Traits\ApiResponser;
 
 class PostController extends Controller
 {
+    use ApiResponser;
     /**
      * Display a listing of the resource.
      *
@@ -18,8 +20,12 @@ class PostController extends Controller
      */
     public function index()
     {
-        $tasks = Tasks::all();
-        return response()->json($tasks);
+        try {
+            $tasks = Tasks::all();
+            return response()->json($tasks);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -40,41 +46,39 @@ class PostController extends Controller
      */
     public function store(StoretaskRequest $request)
     {
-        $user_id = auth()-> user()-> id;
-        $date = date('Y-m-d');
+        try {
+            $user_id = auth()->user()->id;
+            $date = date('Y-m-d');
+     
+            $task = tasks::create([
+                'user_id' => $user_id,
+                'Title' => $request->Title,
+                'Description' => $request->Description,
+                'ProjectID' => $request->ProjectID,
+                'CreaterID' => $user_id,
+                'EstimatedDate' => $request->EstimatedDate,
+                'EstimatedTime' => $request->EstimatedTime,
+                'Priority' => $request->Priority,
+                'CurrentStatus' => $request->CurrentStatus,
+                'CompletedDate' => $request->CompletedDate,
+                'CompletedTime' => $request->CompletedTime,
+                'created_at' => $date,
+                'updated_at' => $date,
+            ]);
+            return $this->success( $task,'Task created successfully');
 
+            //UPDATE TotalTaskMins
+            $data = $request->estimated_time;
+            $data = str_replace(':', '.', $data);
+            if (!(strpos($data, '.') !== false)) $data = $data . '.0';
 
-         
-        $task = tasks::create([
-            //'user_id' => $user_id,
-            'Title' => $request->title,
-            'Description' => $request->description,
-            'ProjectID' => $request->project_id,
-            'CreaterID' => $user_id,
-            'EstimatedDate' => $date,
-            'EstimatedTime' => $request->estimated_time,
-            'Priority' => $request->priority,
-            'CurrentStatus' => $request->current_status,
-            'CompletedDate' =>$request->completed_date,
-            'CompletedTime' => $request->completed_time,
-            'created_at' => $date,
-            'updated_at' => $date,
-        ]);
-        return response()->json([
-            'success' => true,
-            'message' => 'Task created successfully',
-            'task' => $task
-        
-        ], 200);
-      //UPDATE TotalTaskMins
-      $data = $request->estimated_time;
-      $data = str_replace(':','.',$data);
-      if (!(strpos($data, '.') !== false)) $data = $data.'.0';
+            $d = explode(".", $data);
 
-		$d = explode(".", $data);
-
-        $totalmanmins = $d[0] * 60 + $d[1];         
-      signinout::where('user_id',$user_id)->where('EVENTDATE',$date)->update(['TotalTaskMins' => $totalmanmins]);
+            $totalmanmins = $d[0] * 60 + $d[1];
+            signinout::where('user_id', $user_id)->where('EVENTDATE', $date)->update(['TotalTaskMins' => $totalmanmins]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
     }
 
     /**
@@ -108,23 +112,22 @@ class PostController extends Controller
      */
     public function update(StoretaskRequest $request, Tasks $tasks)
     {
-        $tasks = Tasks::find($request->id);
-     
-        if($tasks->update($request->all())){
-            return response()->json([
-                'success' => true,
-                'message' => 'Task updated successfully',
-                'task' => $tasks
-            ], 200);
+        try {
+            $tasks = Tasks::find($request->id);
+
+            if ($tasks->update($request->all())) {
+                return $this->success([
+                    'success' => true,
+                    'message' => 'Task updated successfully',
+                    'task' => $tasks
+                ], 200);
+            }
+            return $this->error('Task not updated', 500);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
-        return response()->json([
-            'message' => 'Task not updated',
-            
-            'error' => error_get_last()
-            
-        ], 400);
     }
-    
+
 
     /**
      * Remove the specified resource from storage.
@@ -134,21 +137,17 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        $todo =Tasks::find($id);
+        try {
+            $todo = Tasks::find($id);
 
-       if(!$todo){
-           return response()->json([
-               'success' => false,
-               'message' => 'Error deleting task',
-               'error' => error_get_last()
-           ], 400);
-       }else{
-           $todo->delete();
-           return response()->json([
-               'success' => true,
-               'message' => 'Task deleted successfully',
-               'Data' => $todo
-           ], 200);
-       }
+            if (!$todo) {
+                return $this->error('Task not found', 404);
+            } else {
+                $todo->delete();
+                return $this->success( $todo,'Task deleted successfully');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
     }
 }

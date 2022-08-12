@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Projects;
 use Illuminate\Http\Request;
+use App\Traits\ApiResponser;
 
 class ProjectController extends Controller
 {
+    use ApiResponser;
     /**
      * Display a listing of the resource.
      *
@@ -16,8 +18,12 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Projects::all();
-        return response()->json($projects);
+        try {
+            $projects = Projects::all();
+            return response()->json($projects);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -38,13 +44,34 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request)
     {
-        $project = Projects::create($request->all());
-        return response()->json([
-            'success' => true,
-            'message' => 'Project created successfully',
-            'project' => $project
-        ], 200);
+        try {
+            $project = Projects::create($request->all());
+            return $this->success([
+                'message' => 'Project created successfully',
+                'project' => $project
+            ], 200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
+
+
+     // $project = Projects::create([
+    //     'Title' => $request->Title,
+    //     'Description' => $request->Description,
+    //     'UserID' => auth()->user()->id,
+    //     'Billing'=> $request->Billing,
+    //     'TotalHours'=> $request->TotalHours,
+    //     'InternalComments'=> $request->InternalComments,
+    //     'BillingType'=> $request->BillingType,
+    //     'Status'=> $request->Status,
+    //     'HourlyINR'=> $request->HourlyINR,
+    //     'Currency'=> $request->Currency,
+    //     'StartDate'=> $request->StartDate,
+    //     'EndDate'=> $request->EndDate,
+    //     'TotalClientHours'=> $request->TotalClientHours,
+    //     'Comments'=> $request->Comments,
+    // ]);
 
     /**
      * Display the specified resource.
@@ -77,23 +104,21 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Projects $projects)
     {
-        
-       $project = Projects::find($request->id);
-       
-       if($project->update($request->all())){
-           return response()->json([
-               'success' => true,
-               'message' => 'Project updated successfully',
-               'project' => $project
-           ], 200);
-       }
-       else{
-           return response()->json([
-               'success' => false,
-               'message' => 'Project not updated',
-               'project' => $project
-           ], 400);
-       }
+        try {
+            $project = Projects::find($request->id);
+
+            if ($project->update($request->all())) {
+                return $this->success([
+                    'success' => true,
+                    'message' => 'Project updated successfully',
+                    'project' => $project
+                ], 200);
+            } else {
+                return $this->error('Project not updated', 400);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
     }
 
     /**
@@ -104,20 +129,15 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        $project = Projects::find($id);
-        if($project->delete()){
-            return response()->json([
-                'success' => true,
-                'message' => 'Project deleted successfully',
-                'project' => $project
-            ], 200);
-        }
-        else{
-            return response()->json([
-                'success' => false,
-                'message' => 'ERROR deleting project',
-                'project' => $project
-            ], 400);
+        try {
+            $project = Projects::find($id);
+            if ($project->delete()) {
+                return $this->success(['Project deleted successfully', $project], 200);
+            } else {
+                return $this->error('Project not deleted', 500);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
     }
 }
