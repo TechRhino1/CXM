@@ -30,20 +30,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 });
 
 
-
-
-//route to Projects
-Route::get('/projects', [ProjectController::class, 'index']);
-Route::post('/projects', [ProjectController::class, 'store']);
-Route::delete('/projects/{id}', [ProjectController::class, 'destroy']);
-Route::put('/projects/{id}', [ProjectController::class, 'update']);
-
-//route to user leaves
-
-//route to sign in out
-Route::delete('/signinouts/{id}', [SignInOutController::class, 'destroy']);
-
-
 ////login and register for adminController
 Route::group(['prefix' => 'admin'], function ($router) {
     Route::post('/login', [AdminController::class, 'login']);
@@ -51,11 +37,21 @@ Route::group(['prefix' => 'admin'], function ($router) {
 });
 
 Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
-    
+
     Route::put('/signinouts', [SignInOutController::class, 'update']);
-    Route::get('/signinouts', [SignInOutController::class, 'index']);
     Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/userprofile', [AdminController::class, 'userProfile']);
+
+    //route to Projects
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::post('/projects', [ProjectController::class, 'store']);
+    Route::post('/projects_delete/{id}', [ProjectController::class, 'destroy']);
+    Route::post('/projects_update/{id}', [ProjectController::class, 'update']);
+
+    //route to sign in out
+    Route::post('/signinouts_delete/{id}', [SignInOutController::class, 'destroy']);
+    Route::get('/signinouts', [SignInOutController::class, 'index']);
+    Route::post('/signinouts_admin', [SignInOutController::class, 'update']);
 });
 
 ////login and register for userController
@@ -65,13 +61,15 @@ Route::group(['prefix' => 'user'], function ($router) {
 });
 
 Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
-    
+
     Route::get('/getuserdetails', [UserController::class, 'getUserDetails']);
+    Route::post('/logout', [UserController::class, 'logout']);
+    Route::get('/userprofile', [UserController::class, 'userProfile']);
+    // route to sign in out
     Route::post('/signinouts', [SignInOutController::class, 'store']);
     Route::get('/getsigninouts', [SignInOutController::class, 'getsignioutbyuserid']);
-    Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/signinouts', [SignInOutController::class, 'index']);
-    Route::get('/userprofile', [UserController::class, 'userProfile']);
+    Route::post('/signinouts_update', [SignInOutController::class, 'update']);
     // route to leave
     Route::post('/userleaves', [UserLeaveController::class, 'store']);
     Route::post('/userleaves_delete/{id}', [UserLeaveController::class, 'destroy']);
@@ -85,5 +83,3 @@ Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/tasks_update/{id}', [PostController::class, 'update']);
 });
 
-
-//route to adminController test

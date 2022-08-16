@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
+use Illuminate\Console\View\Components\Alert;
 
 class SignInOutController extends Controller
 {
@@ -22,7 +23,7 @@ class SignInOutController extends Controller
     {
         try {
             $signInOuts = SignInOut::all();
-            return $this->success($signInOuts , message: 'retrieved successfully',status:200);
+            return $this->success($signInOuts, message: 'retrieved successfully', status: 200);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -63,7 +64,7 @@ class SignInOutController extends Controller
                     ]
                 );
                 if ($signInOut) {
-                    return $this->success( $signInOut,'Sign In created successfully', 201);
+                    return $this->success($signInOut, 'Sign In created successfully', 201);
                 } else {
                     return $this->error('Sign In creation failed', 500);
                 }
@@ -109,31 +110,31 @@ class SignInOutController extends Controller
 
                 $UserID = auth()->user()->id;
                 $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
-                if (!$data->count() > 0) {
+                if ($data->count() <= 0) {
                     return response()->json([
                         'success' => false,
                         'message' => 'You need to sign in first'
                     ], 200);
                 } elseif ($request->SIGNOUT_TIME == '00:00') {
+                    $SIGNOUT_TIME = date('H:i:s');
+                    $SIGNIN_TIME = $data->first()->SIGNIN_TIME;
+                    $TotalMins = (strtotime($SIGNOUT_TIME) - strtotime($SIGNIN_TIME)) / 60;
 
-                    $TotalMins = (strtotime($request->SIGNOUT_TIME) - strtotime($request->SIGNIN_TIME)) / 60;
-                    $signInOut->SIGNOUT_TIME = date('H:i:s');
-                    $signInOut->TOTAL_MINS = $TotalMins;
-                    $signInOut->SIGNOUT_DATE = date('Y-m-d');
-
-                    $signInOut->update(
+                    $signInOut = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->update(
                         [
                             'SIGNOUT_TIME' => date('H:i:s'),
-                            'UPDATEDSIGNOUT_DATE' => date('Y-m-d'),
-                            'UPDATEDSIGNOUT_TIME' => date('H:i:s'),
+                            'CREATEDSIGNOUT_DATE' => date('Y-m-d'),
+                            'CREATEDSIGNOUT_TIME' => date('H:i:s'),
                             'TotalMins' =>  $TotalMins,
                         ]
                     );
                     if ($signInOut) {
-                        return $this->success('Sign Out successfully', $signInOut, 201);
+                        return $this->success($signInOut, 'Sign Out successfully', 201);
                     } else {
                         return $this->error('Sign Out failed', 500);
                     }
+                } else {
+                    return $this->error('You allready signed out today you cannot sign out again please contact your organization', 401);
                 }
             } elseif (auth()->user()->role == '0') { //only admin can update sign in out
 
@@ -179,7 +180,7 @@ class SignInOutController extends Controller
             //only admin can delete sign in out
             if ($request->user()->role === '1') {
                 $signInOut->delete();
-                return $this-> success('Sign In deleted successfully', $signInOut, 200);
+                return $this->success('Sign In deleted successfully', $signInOut, 200);
             } else {
                 return $this->error('You are not authorized to delete this sign in out', 401);
             }
@@ -192,12 +193,10 @@ class SignInOutController extends Controller
         try {
             $UserID = auth()->user()->id;
             $data = SignInOut::where('user_id', $UserID)->get();
-            
-                return $this->success($data);
-            
+
+            return $this->success($data);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
-
     }
 }

@@ -6,9 +6,10 @@ use Closure;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
-
+use App\Traits\ApiResponser;
 class JWTRoleAuth extends BaseMiddleware
 {
+    use ApiResponser;
     /**
      * Handle an incoming request.
      *
@@ -21,10 +22,12 @@ class JWTRoleAuth extends BaseMiddleware
         try{
             $token_role = $this->auth->parseToken()->getClaim('role');
         }catch (JWTException $e){
-            return response()->json([$e->getMessage()], 401);
+            return $this->error($e->getMessage(), 401);
+           // return response()->json([$e->getMessage()], 401);
             }
         if($token_role != $role){
-            return response()->json(['error' => 'User Not Authorized'], 404);
+            return $this->error('You are not authorized to access this resource', 401);
+           // return response()->json(['error' => 'User Not Authorized'], 404);
         }
         return $next($request);
         // if (! $token = $this->auth->setRequest($request)->getToken()) {

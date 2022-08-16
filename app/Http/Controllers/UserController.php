@@ -38,6 +38,7 @@ class UserController extends Controller
                 return $this->error('Unauthorized', 401);
             }
             $user = FacadesAuth::user();
+            //increase token expiry time to 2 days
 
             return $this->success([
                 'user' => $user,
@@ -78,6 +79,7 @@ class UserController extends Controller
     public function logout()
     {
         auth()->logout();
+        
 
         return $this->success(['message' => 'Successfully logged out'], 'Logout Successful', 200);
     }
