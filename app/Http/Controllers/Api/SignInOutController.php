@@ -115,11 +115,13 @@ class SignInOutController extends Controller
                         'success' => false,
                         'message' => 'You need to sign in first'
                     ], 200);
-                } elseif ($request->SIGNOUT_TIME == '00:00') {
+                } elseif ($data->count() > 0) {
                     $SIGNOUT_TIME = date('H:i:s');
                     $SIGNIN_TIME = $data->first()->SIGNIN_TIME;
                     $TotalMins = (strtotime($SIGNOUT_TIME) - strtotime($SIGNIN_TIME)) / 60;
-
+//                     $tminsformatted = gmdate('H:i:s', $TotalMins);
+//                      print_r($tminsformatted);
+// die();
                     $signInOut = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->update(
                         [
                             'SIGNOUT_TIME' => date('H:i:s'),
@@ -128,6 +130,8 @@ class SignInOutController extends Controller
                             'TotalMins' =>  $TotalMins,
                         ]
                     );
+
+
                     if ($signInOut) {
                         return $this->success($signInOut, 'Sign Out successfully', 201);
                     } else {
@@ -189,12 +193,34 @@ class SignInOutController extends Controller
         }
     }
     public function getsignioutbyuserid()
-    { //get sign in out by user id
+    { //get sign in out by user id in given month and year
         try {
+            $month = request('month');
+            $year = request('year');
             $UserID = auth()->user()->id;
-            $data = SignInOut::where('user_id', $UserID)->get();
+            $data = SignInOut::where('user_id', $UserID)->whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)->get();
 
-            return $this->success($data);
+            if ($data->count() > 0) {
+                return $this->success($data);
+            } else {
+                return $this->error('No Data found', 500);
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+
+
+    }
+    public function getusersigndetails()
+    {
+        //get details of all user in current day
+        try {
+            $data = SignInOut::where('EVENTDATE', date('Y-m-d'))->get();
+            if ($data->count() > 0) {
+                return $this->success($data);
+            } else {
+                return $this->error('No Data found', 500);
+            }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }

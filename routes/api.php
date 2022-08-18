@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\UserLeaveController;
 use App\Http\Controllers\Api\SignInOutController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\StatusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,8 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 Route::group(['prefix' => 'user'], function ($router) {
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/register', [UserController::class, 'register']);
+    Route::get('/getstatus', [PostController::class, 'getStatus']);
+    Route::get('/getpriority', [PostController::class, 'getPriority']);
 });
 
 Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
@@ -67,9 +70,10 @@ Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], f
     Route::get('/userprofile', [UserController::class, 'userProfile']);
     // route to sign in out
     Route::post('/signinouts', [SignInOutController::class, 'store']);
-    Route::get('/getsigninouts', [SignInOutController::class, 'getsignioutbyuserid']);
+    Route::post('/getsigninouts', [SignInOutController::class, 'getsignioutbyuserid']);
     Route::get('/signinouts', [SignInOutController::class, 'index']);
     Route::post('/signinouts_update', [SignInOutController::class, 'update']);
+    Route::get('/signinoutsdetails', [SignInOutController::class, 'getusersigndetails']);//get user detail of current day
     // route to leave
     Route::post('/userleaves', [UserLeaveController::class, 'store']);
     Route::post('/userleaves_delete/{id}', [UserLeaveController::class, 'destroy']);
@@ -77,7 +81,7 @@ Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], f
     Route::get('/userleaves', [UserLeaveController::class, 'index']);
     Route::post('/userleaves_update/{id}', [UserLeaveController::class, 'update']);
     // route to Tasks
-    Route::get('/tasks', [PostController::class, 'index']);
+    Route::post('/tasksget', [PostController::class, 'index']); //per month and year
     Route::post('/tasks', [PostController::class, 'store']);
     Route::post('/tasks_delete/{id}', [PostController::class, 'destroy']);
     Route::post('/tasks_update/{id}', [PostController::class, 'update']);

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoretaskRequest;
 use App\Models\Tasks;
 use App\Models\SignInOut;
+use App\Models\Status;
+use App\Models\Priority;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
@@ -21,8 +23,16 @@ class PostController extends Controller
     public function index()
     {
         try {
-            $tasks = Tasks::all();
-            return response()->json($tasks);
+            $userid= request('userid');
+            $month = request('month');
+            $year = request('year');
+
+            $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)->get();
+            if($tasks->count() > 0){
+                return $this->success($tasks);
+            }else{
+                return $this->error('No tasks found', 401);
+            }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -49,7 +59,8 @@ class PostController extends Controller
         try {
             $user_id = auth()->user()->id;
             $date = date('Y-m-d');
-     
+
+
             $task = tasks::create([
                 'user_id' => $user_id,
                 'Title' => $request->Title,
@@ -146,6 +157,24 @@ class PostController extends Controller
                 $todo->delete();
                 return $this->success( $todo,'Task deleted successfully');
             }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getStatus()
+    {
+        try {
+            $status = Status::all();
+            return $this->success($status);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getPriority()
+    {
+        try {
+            $priority = Priority::all();
+            return $this->success($priority);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
