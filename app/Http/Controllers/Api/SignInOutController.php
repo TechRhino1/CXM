@@ -119,9 +119,7 @@ class SignInOutController extends Controller
                     $SIGNOUT_TIME = date('H:i:s');
                     $SIGNIN_TIME = $data->first()->SIGNIN_TIME;
                     $TotalMins = (strtotime($SIGNOUT_TIME) - strtotime($SIGNIN_TIME)) / 60;
-//                     $tminsformatted = gmdate('H:i:s', $TotalMins);
-//                      print_r($tminsformatted);
-// die();
+
                     $signInOut = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->update(
                         [
                             'SIGNOUT_TIME' => date('H:i:s'),
@@ -133,7 +131,7 @@ class SignInOutController extends Controller
 
 
                     if ($signInOut) {
-                        return $this->success($signInOut, 'Sign Out successfully', 201);
+                        return $this->success('Sign Out successfully', 201);
                     } else {
                         return $this->error('Sign Out failed', 500);
                     }

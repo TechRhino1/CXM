@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Projects;
+use App\Models\Projectusers;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
+use Symfony\Component\VarDumper\VarDumper;
 
 class ProjectController extends Controller
 {
@@ -138,6 +140,29 @@ class ProjectController extends Controller
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getprojectbyuser_id()
+    {
+        try {
+
+            $Userid = request('userid');
+
+            //join table projectusers and projects order by DESCRIPTION
+            $projects = projects::join('projectusers', 'projects.id', '=', 'projectusers.project_id')
+                ->where('projectusers.user_id', $Userid)
+                ->orderBy('projects.Description', 'DESC')
+                ->get();
+           // $projects = Projects::where('UserID', $Userid)->get();
+            if($projects->count() > 0){
+                return $this->success($projects, 200);
+            }else{
+                return $this->error('No projects found', 400);
+            }
+
+
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
         }
     }
 }
