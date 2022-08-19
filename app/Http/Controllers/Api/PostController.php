@@ -32,7 +32,7 @@ class PostController extends Controller
             if ($tasks->count() > 0) {
                 return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved successfully');
             } else {
-                return $this-> error('Task not updated',204);
+                return $this->success($tasks , 'No Task(s) found');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

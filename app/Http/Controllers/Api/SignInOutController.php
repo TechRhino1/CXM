@@ -52,7 +52,7 @@ class SignInOutController extends Controller
             $UserID = auth()->user()->id;
             $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
             if ($data->count() > 0) {
-                return $this->error('You allready signed in today you cannot sign in again please contact your organization', 401);
+                return $this->error('You allready signed in today you cannot sign in again please contact your organization', 400);
             } else {
                 $signInOut = SignInOut::create(
                     [
