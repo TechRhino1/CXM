@@ -75,6 +75,7 @@ Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], f
     Route::get('/signinouts', [SignInOutController::class, 'index']);
     Route::post('/signinouts_update', [SignInOutController::class, 'update']);
     Route::get('/signinoutsdetails', [SignInOutController::class, 'getusersigndetails']);//get user detail of current day
+    Route::get('/myprojectstatus', [ProjectController::class, 'getmyprojectstatus']);//get user detail of project status
     // route to leave
     Route::post('/userleaves', [UserLeaveController::class, 'store']);
     Route::post('/userleaves_delete/{id}', [UserLeaveController::class, 'destroy']);
@@ -82,7 +83,7 @@ Route::group(['middleware' => ['jwt.role:1', 'jwt.auth'], 'prefix' => 'user'], f
     Route::get('/userleaves', [UserLeaveController::class, 'index']);
     Route::post('/userleaves_update/{id}', [UserLeaveController::class, 'update']);
     // route to Tasks
-    Route::post('/tasksget', [PostController::class, 'index']); //per month and year
+    Route::post('/gettasks', [PostController::class, 'index']); //per month and year
     Route::post('/tasks', [PostController::class, 'store']);
     Route::post('/tasks_delete/{id}', [PostController::class, 'destroy']);
     Route::post('/tasks_update/{id}', [PostController::class, 'update']);

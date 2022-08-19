@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Projects;
 use App\Models\Projectusers;
+use App\Models\Tasks;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use Symfony\Component\VarDumper\VarDumper;
@@ -22,7 +23,7 @@ class ProjectController extends Controller
     {
         try {
             $projects = Projects::all();
-            return response()->json($projects);
+            return $this->success($projects, 'A total of '.$projects->count().' Project(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -142,27 +143,44 @@ class ProjectController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
-    public function getprojectbyuser_id()
+    // public function getprojectstatus()
+    // {
+
+
+
+    // }
+
+    public function getmyprojectstatus()
     {
+        //SELECT projects.ID, projects.DESCRIPTION, projects.TOTALHOURS, projects.INTERNALCOMMENTS FROM projects LEFT JOIN projectusers ON (projects.ID = projectusers.`project_id` );
         try {
-
-            $Userid = request('userid');
-
-            //join table projectusers and projects order by DESCRIPTION
-            $projects = projects::join('projectusers', 'projects.id', '=', 'projectusers.project_id')
+           // $Userid = request('userid');
+            $Userid = auth()->user()->id;
+            $projects = projects::leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
                 ->where('projectusers.user_id', $Userid)
                 ->orderBy('projects.Description', 'DESC')
                 ->get();
-           // $projects = Projects::where('UserID', $Userid)->get();
             if($projects->count() > 0){
-                return $this->success($projects, 200);
+
+                return $this->success($projects, 'A total of '.$projects->count().' Information(s) retrieved successfully');
             }else{
                 return $this->error('No projects found', 400);
             }
 
+            // if(isset($projects)){
+            //     $pid= $projects->project_id;
+            //     $tasks = Tasks::select('EstimatedTime', 'CurrentlyAssignedToID')->where('ProjectID', '=', $pid)->get();
+            //     $ET = $tasks->EstimatedTime;
+            //     $CA = $tasks->CurrentlyAssignedToID;
 
+
+            //     return $this->success($tasks, 200);
+            // }else{
+            //     return $this->error('No projects found', 400);
+            // }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
+
     }
 }

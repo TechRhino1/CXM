@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserLeavesRequest;
 use App\Models\UserLeaves;
+use App\Models\User;
 use Error;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
@@ -20,7 +21,8 @@ class UserLeaveController extends Controller
     {
         try{
         $userLeaves = UserLeaves::all();
-        return $this->success($userLeaves ,'User Leave data List');
+        $count = $userLeaves->count();
+        return $this->success($userLeaves ,'A total of '.$count.' Leave Information(s) retrieved successfully');
         }catch(\Throwable $e){
             return $this->error($e->getMessage(), 500);
         }
@@ -46,7 +48,7 @@ class UserLeaveController extends Controller
     {
         try{
         $UserID = auth()->user()->id;
-        
+
         $userLeave = UserLeaves::create(
             [
                 'UserID' => $UserID,
@@ -66,7 +68,7 @@ class UserLeaveController extends Controller
         }catch(\Throwable $e ){
             return $this-> error($e->getMessage(),400);
         }
-        
+
     }
 
     /**
@@ -102,7 +104,7 @@ class UserLeaveController extends Controller
     {
        try{
          $userId = auth()->user()->id;
-        
+
             $userLeave = UserLeaves::where('id',$id)->where('UserID',$userId)->first();
             if($userId ==  $userLeave->UserID ){
                 if($userLeave->update($request->all())){
@@ -118,15 +120,15 @@ class UserLeaveController extends Controller
             }
 
 
-       
-        
-           
+
+
+
         }
         catch(\Throwable $e ){
             return $this->error($e->getMessage(),400);
         }
     }
-   
+
     ///for admins
     // $userLeaves->update([
     //     'ApprovalStatus' => $request->ApprovalStatus,
@@ -158,12 +160,15 @@ class UserLeaveController extends Controller
     {
         try{
         if($id !== null) {
-            $userLeave = UserLeaves::where('UserID', $id)->get();
-            return $this->success($userLeave,'User Leave Profile', 201);
+
+         $userLeave = UserLeaves::join ('users','users.id','=','user_leaves.UserID') ->where('user_leaves.UserID',$id)->Select('users.name','user_leaves.UserID','user_leaves.DateFrom','user_leaves.DateTo','user_leaves.Reason','user_leaves.ApprovalStatus','user_leaves.ApprovedUserID','user_leaves.ApprovedDate','user_leaves.ApprovalComments')->get();
+          // $userLeave = UserLeaves::where('UserID', $id)->get();
+          $count = $userLeave->count();
+            return $this->success($userLeave,'A total of '.$count.' Leave Information(s) retrieved', 201);
         } else {
             return $this->error('User Leave Not Found', 404);
         }
-        
+
     }
     catch(\Throwable $e ){
         return $this->error($e->getMessage(),400);

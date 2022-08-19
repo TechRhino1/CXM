@@ -102,7 +102,7 @@ class UserController extends Controller
     {
         try{
             $user = User::find(auth()->user()->id);
-            return $this->success($user,'User Details',200);
+            return $this->success($user,'A total of '.$user->count().' User(s) retrieved successfully');
         }
         catch(\Throwable $e){
             return $this->error($e->getMessage(),500);

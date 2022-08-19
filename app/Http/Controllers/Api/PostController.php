@@ -8,6 +8,7 @@ use App\Models\Tasks;
 use App\Models\SignInOut;
 use App\Models\Status;
 use App\Models\Priority;
+use App\Models\Projectusers;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
@@ -23,15 +24,15 @@ class PostController extends Controller
     public function index()
     {
         try {
-            $userid= request('userid');
+            $userid = request('userid');
             $month = request('month');
             $year = request('year');
 
             $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)->get();
-            if($tasks->count() > 0){
-                return $this->success($tasks);
-            }else{
-                return $this->error('No tasks found', 401);
+            if ($tasks->count() > 0) {
+                return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved successfully');
+            } else {
+                return $this-> error('Task not updated',204);
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -62,7 +63,7 @@ class PostController extends Controller
 
 
             $task = tasks::create([
-                'user_id' => $user_id,
+                //'user_id' => $user_id,
                 'Title' => $request->Title,
                 'Description' => $request->Description,
                 'ProjectID' => $request->ProjectID,
@@ -70,23 +71,34 @@ class PostController extends Controller
                 'EstimatedDate' => $request->EstimatedDate,
                 'EstimatedTime' => $request->EstimatedTime,
                 'Priority' => $request->Priority,
+                // "InitiallyAssignedToID" =>$request->InitiallyAssignedToID,
+                // "CurrentlyAssignedToID"=> $request->CurrentlyAssignedToID,
                 'CurrentStatus' => $request->CurrentStatus,
                 'CompletedDate' => $request->CompletedDate,
                 'CompletedTime' => $request->CompletedTime,
                 'created_at' => $date,
                 'updated_at' => $date,
             ]);
-            return $this->success( $task,'Task created successfully');
+            // insert into productuser table
+            Projectusers::create([
+                'project_id' => $request->ProjectID,
+                'user_id' => $user_id,
+            ]);
 
-            //UPDATE TotalTaskMins
-            $data = $request->estimated_time;
+            //UPDATE TotalTaskMins in signinout table
+            $data = $request->EstimatedTime;
             $data = str_replace(':', '.', $data);
+
             if (!(strpos($data, '.') !== false)) $data = $data . '.0';
 
             $d = explode(".", $data);
 
             $totalmanmins = $d[0] * 60 + $d[1];
-            signinout::where('user_id', $user_id)->where('EVENTDATE', $date)->update(['TotalTaskMins' => $totalmanmins]);
+            //get TotalTaskMins of user today
+            $signinout = SignInOut::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->Select('TotalTaskMins')->get();
+            $totaltmin = $signinout[0]->TotalTaskMins;
+            signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' =>  $totaltmin + $totalmanmins]);
+            return $this->success($task, 'Task created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -127,6 +139,20 @@ class PostController extends Controller
             $tasks = Tasks::find($request->id);
 
             if ($tasks->update($request->all())) {
+
+                //UPDATE TotalTaskMins in signinout table
+                $user_id = auth()->user()->id;
+                $tasks = $request->EstimatedTime;
+                $tasks = str_replace(':', '.', $tasks);
+
+                if (!(strpos($tasks, '.') !== false)) $data = $tasks . '.0';
+
+                $d = explode(".", $tasks);
+
+                $totalmanmins = $d[0] * 60 + $d[1];
+
+                signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]); //need fix
+                //////////////////////////////
                 return $this->success([
                     'success' => true,
                     'message' => 'Task updated successfully',
@@ -155,7 +181,7 @@ class PostController extends Controller
                 return $this->error('Task not found', 404);
             } else {
                 $todo->delete();
-                return $this->success( $todo,'Task deleted successfully');
+                return $this->success($todo, 'Task deleted successfully');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -165,7 +191,7 @@ class PostController extends Controller
     {
         try {
             $status = Status::all();
-            return $this->success($status);
+            return $this->success($status , 'A total of '.$status->count().' Status(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -174,7 +200,7 @@ class PostController extends Controller
     {
         try {
             $priority = Priority::all();
-            return $this->success($priority);
+            return $this->success($priority , 'A total of '.$priority->count().' Priority(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }

@@ -18,4 +18,7 @@ class UserLeaves extends Model
         'ApprovedDate',
         'ApprovalComments',
     ];
+
+
+
 }

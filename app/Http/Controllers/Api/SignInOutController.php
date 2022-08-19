@@ -23,7 +23,8 @@ class SignInOutController extends Controller
     {
         try {
             $signInOuts = SignInOut::all();
-            return $this->success($signInOuts, message: 'retrieved successfully', status: 200);
+            $count = $signInOuts->count();
+            return $this->success($signInOuts, message: ' A total of '.$count.' Leave Information(s) retrieved', status: 200);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -199,7 +200,8 @@ class SignInOutController extends Controller
             $data = SignInOut::where('user_id', $UserID)->whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)->get();
 
             if ($data->count() > 0) {
-                return $this->success($data);
+                $count = $data->count();
+                return $this->success($data , 'A total of '.$count.' Information(s) retrieved');
             } else {
                 return $this->error('No Data found', 500);
             }
@@ -213,9 +215,10 @@ class SignInOutController extends Controller
     {
         //get details of all user in current day
         try {
-            $data = SignInOut::where('EVENTDATE', date('Y-m-d'))->get();
+            //join users table and sign in out table to get only user name
+            $data = SignInOut::join('users', 'users.id', '=', 'sign_in_outs.user_id')->where('sign_in_outs.EVENTDATE', date('Y-m-d'))->Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins','sign_in_outs.EVENTDATE','sign_in_outs.TotalTaskMins','sign_in_outs.user_id')->get();
             if ($data->count() > 0) {
-                return $this->success($data);
+                return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
             } else {
                 return $this->error('No Data found', 500);
             }
