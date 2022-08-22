@@ -26,7 +26,7 @@ class SignInOutController extends Controller
             $count = $signInOuts->count();
             return $this->success($signInOuts, message: ' A total of '.$count.' Leave Information(s) retrieved', status: 200);
         } catch (\Throwable $e) {
-            return $this->error($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 400);
         }
     }
 
@@ -61,13 +61,15 @@ class SignInOutController extends Controller
                         'SIGNIN_TIME' => date('H:i:s'),
                         'CREATEDSIGNIN_DATE' => date('Y-m-d'),
                         'CREATEDSIGNIN_TIME' => date('H:i:s'),
+                        'TotalMins' => 0,
+                        'TotalTaskMins' => 0,
 
                     ]
                 );
                 if ($signInOut) {
                     return $this->success($signInOut, 'Sign In created successfully', 201);
                 } else {
-                    return $this->error('Sign In creation failed', 500);
+                    return $this->error('Sign In creation failed', 400);
                 }
             }
         } catch (\Throwable $e) {
@@ -134,7 +136,7 @@ class SignInOutController extends Controller
                     if ($signInOut) {
                         return $this->success('Sign Out successfully', 201);
                     } else {
-                        return $this->error('Sign Out failed', 500);
+                        return $this->error('Sign Out failed',400);
                     }
                 } else {
                     return $this->error('You allready signed out today you cannot sign out again please contact your organization', 401);
@@ -203,7 +205,7 @@ class SignInOutController extends Controller
                 $count = $data->count();
                 return $this->success($data , 'A total of '.$count.' Information(s) retrieved');
             } else {
-                return $this->error('No Data found', 500);
+                return $this->success($data , 'No Information(s) retrieved');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -220,7 +222,7 @@ class SignInOutController extends Controller
             if ($data->count() > 0) {
                 return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
             } else {
-                return $this->error('No Data found', 500);
+                return $this->success ($data, 'No Information(s) retrieved');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);

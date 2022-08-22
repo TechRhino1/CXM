@@ -27,6 +27,8 @@ class SignInOut extends Model
         'tminsformated',
         'ttaskminsformatted',
         'name',
+        // 'totalmins',
+        // 'totaltaskmins',
     ];
     public function getsignout()
     {
@@ -56,6 +58,15 @@ class SignInOut extends Model
             ->get();
         return $name->first()->name;
     }
+    // public function getTotalminsAttribute()
+    // {
+
+    // }
+    // public function getTotaltaskminsAttribute()
+    // {
+    //     return $this->TotalTaskMins;
+    // }
+
 
 
 }

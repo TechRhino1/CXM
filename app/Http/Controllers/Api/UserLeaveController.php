@@ -20,7 +20,9 @@ class UserLeaveController extends Controller
     public function index()
     {
         try{
-        $userLeaves = UserLeaves::all();
+
+        $userLeaves = UserLeaves::where('DateFrom', '>=', date('Y-m-d'))->get();
+        //$userLeaves = UserLeaves::all();
         $count = $userLeaves->count();
         return $this->success($userLeaves ,'A total of '.$count.' Leave Information(s) retrieved successfully');
         }catch(\Throwable $e){
@@ -174,4 +176,20 @@ class UserLeaveController extends Controller
         return $this->error($e->getMessage(),400);
     }
     }
+    public function getleavebyleaveid()
+    {
+        try{
+            $id=Request('id');
+            $userLeave = UserLeaves::where('id', $id)->first();
+            if($userLeave) {
+                return $this->success($userLeave,'User Leave retrieved successfully', 201);
+            } else {
+                return $this->success($userLeave,'User Leave Not Found', 200);
+            }
+        }
+    catch(\Throwable $e ){
+        return $this->error($e->getMessage(),400);
+    }
+    }
+
 }

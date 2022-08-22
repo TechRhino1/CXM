@@ -36,15 +36,14 @@ class UserController extends Controller
 
             if (!$token = auth('api')->attempt($validator->validated())) {
                 return $this->error('Unauthorized', 401);
-            }
-            $user = FacadesAuth::user();
-            //increase token expiry time to 2 days
-
+            }else{
+           // $user = FacadesAuth::user();
             return $this->success([
                 'user' => $user,
                 'token' => $token,
                 //'token2' =>$user->createToken("API TOKEN")->plainTextToken
             ], 'Login Successful', 200);
+        }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -97,18 +96,5 @@ class UserController extends Controller
             'user' => auth()->user()
         ]);
     }
-    //get details of logged in user
-    public function getUserDetails()
-    {
-        try{
-            $user = User::find(auth()->user()->id);
-            return $this->success($user,'A total of '.$user->count().' User(s) retrieved successfully');
-        }
-        catch(\Throwable $e){
-            return $this->error($e->getMessage(),500);
-        }
-        // $user = auth()->user()->id;
-        // $user = User:: where('id',$user)->first();
-        // return $this->success($user,'User Details',200);
-    }
+
 }

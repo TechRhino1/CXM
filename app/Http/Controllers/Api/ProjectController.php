@@ -23,9 +23,13 @@ class ProjectController extends Controller
     {
         try {
             $projects = Projects::all();
-            return $this->success($projects, 'A total of '.$projects->count().' Project(s) retrieved successfully');
+            if($projects->count() > 0){
+                return $this->success($projects, message: ' A total of '.$projects->count().' Project(s) retrieved');
+            }else{
+                return $this->success($projects, message: 'No Project(s) found');
+            }
         } catch (\Throwable $e) {
-            return $this->error($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 400);
         }
     }
 
@@ -48,32 +52,47 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request)
     {
         try {
-            $project = Projects::create($request->all());
-            return $this->success([
-                'message' => 'Project created successfully',
-                'project' => $project
-            ], 200);
+            $project = Projects::create([
+                    //'Title' => $request->Title,
+                    'Description' => $request->Description,
+                    'UserID' =>$request->UserID,
+                    'ClientID' => $request->ClientID,
+                    'Comments'=> $request->Comments,
+                    'InternalComments'=> $request->InternalComments,
+                    'Billing'=> $request->Billing,
+                    'StartDate'=> $request->StartDate,
+                    'EndDate'=> $request->EndDate,
+                    'TotalHours'=> $request->TotalHours,
+                    'TotalClientHours'=> $request->TotalClientHours,
+                    'HourlyINR'=> $request->HourlyINR,
+                    'BillingType'=> $request->BillingType,
+                    'Status'=> $request->Status,
+                    'Currency'=> $request->Currency,
+                ]);
+            return $this->success($project, 'Project created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }
 
 
-     // $project = Projects::create([
-    //     'Title' => $request->Title,
+
+    // $project = Projects::create([
+    //     //'Title' => $request->Title,
     //     'Description' => $request->Description,
-    //     'UserID' => auth()->user()->id,
-    //     'Billing'=> $request->Billing,
-    //     'TotalHours'=> $request->TotalHours,
+    //     'UserID' =>$request->UserID,
+    //     'ClientID' => $request->ClientID,
+    //     'Comments'=> $request->Comments,
     //     'InternalComments'=> $request->InternalComments,
-    //     'BillingType'=> $request->BillingType,
-    //     'Status'=> $request->Status,
-    //     'HourlyINR'=> $request->HourlyINR,
-    //     'Currency'=> $request->Currency,
+    //     'Billing'=> $request->Billing,
     //     'StartDate'=> $request->StartDate,
     //     'EndDate'=> $request->EndDate,
+    //     'TotalHours'=> $request->TotalHours,
     //     'TotalClientHours'=> $request->TotalClientHours,
-    //     'Comments'=> $request->Comments,
+    //     'HourlyINR'=> $request->HourlyINR,
+    //     'BillingType'=> $request->BillingType,
+    //     'Status'=> $request->Status,
+    //     'Currency'=> $request->Currency,
     // ]);
 
     /**
@@ -111,11 +130,7 @@ class ProjectController extends Controller
             $project = Projects::find($request->id);
 
             if ($project->update($request->all())) {
-                return $this->success([
-                    'success' => true,
-                    'message' => 'Project updated successfully',
-                    'project' => $project
-                ], 200);
+                return $this->success($project, 'Project updated successfully');
             } else {
                 return $this->error('Project not updated', 400);
             }
@@ -135,9 +150,9 @@ class ProjectController extends Controller
         try {
             $project = Projects::find($id);
             if ($project->delete()) {
-                return $this->success(['Project deleted successfully', $project], 200);
+                return $this->success($project, 'Project deleted successfully');
             } else {
-                return $this->error('Project not deleted', 500);
+                return $this->error('Project not deleted', 400);
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -160,11 +175,15 @@ class ProjectController extends Controller
                 ->where('projectusers.user_id', $Userid)
                 ->orderBy('projects.Description', 'DESC')
                 ->get();
+                foreach ($projects as $project) {
+                    $project->TotalHours = gmdate("i:s", $project->TotalHours);
+                }
+
             if($projects->count() > 0){
 
                 return $this->success($projects, 'A total of '.$projects->count().' Information(s) retrieved successfully');
             }else{
-                return $this->error('No projects found', 400);
+                return $this->success($projects, 'No Projects found for this user');
             }
 
             // if(isset($projects)){
@@ -183,4 +202,33 @@ class ProjectController extends Controller
         }
 
     }
+    public function saveprojectofuser(Request $request)
+    {
+        try {
+           // $project = Projects::find($request->id);
+           // $project->UserID = auth()->user()->id;
+            $projects = 0;
+            return $this->success(  $projects, 'Project saved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+    public function getprojectbyuser_id()
+    {
+        try {
+            $Userid = request('id');
+            print_r($Userid);
+            $projects = Projects::where('UserID', $Userid)->get();
+            if($projects->count() > 0){
+
+                return $this->success($projects, 'A total of '.$projects->count().' Information(s) retrieved successfully');
+            }else{
+                return $this->success($projects, 'No Projects found for this user');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+
 }

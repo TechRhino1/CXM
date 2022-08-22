@@ -24,21 +24,38 @@ class StoreProjectRequest extends FormRequest
     public function rules()
     {
         return [
-            'Description' => 'required|string|max:255',
-            'Billing' => 'required|numeric',
-            'BillingType' => 'required|string|max:255',
-            'TotalHours' => 'required|numeric',
-            'Status' => 'required|string|max:255',
-            'HourlyINR' => 'required|numeric',
-            'Currency' => 'required|string|max:255',
+            'Description' => 'required',
+            'UserID' =>  'required',
+            'ClientID' =>  'required',
+            'Comments' =>  'required',
+            'InternalComments' =>'required',
+            'Billing' => 'required',
             'StartDate' => 'required',
-            'EndDate' => 'required',
-            'TotalClientHours' => 'required|numeric',
-            'UserID' => 'required|numeric',
-            // 'Comments' => '',
-            // 'InternalComments' => '',
-            'ClientID' => 'required|numeric',
-        
+            'EndDate' =>  'required',
+            'TotalHours' => 'required',
+            'TotalClientHours' =>'required',
+            'HourlyINR' =>  'required',
+            'BillingType' => 'required',
+            'Status' =>  'required ',
+            'Currency' => 'required',
+
+
+
+            // 'Description' => 'required|string|max:255',
+            // 'Billing' => 'required|numeric',
+            // 'BillingType' => 'required|string|max:255',
+            // 'TotalHours' => 'required|numeric',
+            // 'Status' => 'required',
+            // 'HourlyINR' => 'required|numeric',
+            // 'Currency' => 'required|string|max:255',
+            // 'StartDate' => 'required',
+            // 'EndDate' => 'required',
+            // 'TotalClientHours' => 'required|numeric',
+            // 'UserID' => 'required|numeric',
+            // // 'Comments' => '',
+            // // 'InternalComments' => '',
+            // 'ClientID' => 'required|numeric',
+
         ];
     }
 }

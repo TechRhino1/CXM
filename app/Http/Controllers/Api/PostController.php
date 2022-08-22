@@ -30,12 +30,12 @@ class PostController extends Controller
 
             $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)->get();
             if ($tasks->count() > 0) {
-                return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved successfully');
+                return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved' , 200);
             } else {
                 return $this->success($tasks , 'No Task(s) found');
             }
         } catch (\Throwable $e) {
-            return $this->error($e->getMessage(), 500);
+            return $this->error($e->getMessage(), 400);
         }
     }
 
@@ -67,17 +67,18 @@ class PostController extends Controller
                 'Title' => $request->Title,
                 'Description' => $request->Description,
                 'ProjectID' => $request->ProjectID,
-                'CreaterID' => $user_id,
+                'CreaterID' => $request->id,
                 'EstimatedDate' => $request->EstimatedDate,
                 'EstimatedTime' => $request->EstimatedTime,
                 'Priority' => $request->Priority,
-                // "InitiallyAssignedToID" =>$request->InitiallyAssignedToID,
-                // "CurrentlyAssignedToID"=> $request->CurrentlyAssignedToID,
+                "InitiallyAssignedToID" =>$user_id, //need fix
+                "CurrentlyAssignedToID"=>$user_id, //need fix
                 'CurrentStatus' => $request->CurrentStatus,
-                'CompletedDate' => $request->CompletedDate,
-                'CompletedTime' => $request->CompletedTime,
+                'CompletedDate' => date('Y-m-d' ),
+                'CompletedTime' => date('H:i:s'),
                 'created_at' => $date,
                 'updated_at' => $date,
+                'ParentID' => 0 ,
             ]);
             // insert into productuser table
             Projectusers::create([
@@ -201,6 +202,27 @@ class PostController extends Controller
         try {
             $priority = Priority::all();
             return $this->success($priority , 'A total of '.$priority->count().' Priority(s) retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    //get uncompleted tasks of user
+    public function getUncompletedTasks()
+    {
+        try {
+            $user_id = auth()->user()->id;
+            $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '3')->get();
+            return $this->success($tasks , 'A total of '.$tasks->count().' Uncompleted Task(s) retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function gettaskdetails()
+    {
+        try {
+            $id = request('id');
+            $task = Tasks::find($id);
+            return $this->success($task , 'Task retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }

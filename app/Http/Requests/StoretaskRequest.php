@@ -28,17 +28,17 @@ class StoretaskRequest extends FormRequest
             'Title' => 'required|string|max:255',
             'Description' => 'required|string|max:255',
             'ProjectID' => 'required|integer',
-            'CreaterID' => 'required|integer',
+            //'CreaterID' => 'required|integer',
             'EstimatedDate' => 'required|date',
             'EstimatedTime' => 'required',
             'Priority' => 'required',
             'CurrentStatus' => 'required',
             // 'InitiallyAssignedToID' => 'required|integer',
             // 'CurrentlyAssignedToID' => 'required|integer',
-            'CompletedDate' => 'required',
-            'CompletedTime' => 'required',
+            // 'CompletedDate' => 'required',
+            // 'CompletedTime' => 'required',
             // 'ParentID' => 'required|integer',
-       
+
         ];
         }catch(\Throwable $e){
             return $this->error($e->getMessage(), 500);
