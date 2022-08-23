@@ -110,12 +110,9 @@ class UserLeaveController extends Controller
             $userLeave = UserLeaves::where('id',$id)->where('UserID',$userId)->first();
             if($userId ==  $userLeave->UserID ){
                 if($userLeave->update($request->all())){
-                    return $this->success([
-                        'message' => 'User Leave updated successfully',
-                        'userLeave' => $userLeave
-                    ],200);
+                    return $this->success($userLeave,'User Leave Updated Successfully', 201);
                 }
-                return $this->error('User Leave not updated',500);
+                return $this->error('User Leave not updated',400);
             }
             else{
                 return $this->error('You are not authorized to update this leave', 500);
@@ -163,7 +160,7 @@ class UserLeaveController extends Controller
         try{
         if($id !== null) {
 
-         $userLeave = UserLeaves::join ('users','users.id','=','user_leaves.UserID') ->where('user_leaves.UserID',$id)->Select('users.name','user_leaves.UserID','user_leaves.DateFrom','user_leaves.DateTo','user_leaves.Reason','user_leaves.ApprovalStatus','user_leaves.ApprovedUserID','user_leaves.ApprovedDate','user_leaves.ApprovalComments')->get();
+         $userLeave = UserLeaves::join ('users','users.id','=','user_leaves.UserID') ->where('user_leaves.UserID',$id)->Select('user_leaves.id','users.name','user_leaves.UserID','user_leaves.DateFrom','user_leaves.DateTo','user_leaves.Reason','user_leaves.ApprovalStatus','user_leaves.ApprovedUserID','user_leaves.ApprovedDate','user_leaves.ApprovalComments')->get();
           // $userLeave = UserLeaves::where('UserID', $id)->get();
           $count = $userLeave->count();
             return $this->success($userLeave,'A total of '.$count.' Leave Information(s) retrieved', 201);
@@ -182,7 +179,7 @@ class UserLeaveController extends Controller
             $id=Request('id');
             $userLeave = UserLeaves::where('id', $id)->first();
             if($userLeave) {
-                return $this->success($userLeave,'User Leave retrieved successfully', 201);
+                return $this->success([$userLeave],'User Leave retrieved successfully', 201);
             } else {
                 return $this->success($userLeave,'User Leave Not Found', 200);
             }

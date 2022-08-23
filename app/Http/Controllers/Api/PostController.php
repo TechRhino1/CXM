@@ -99,7 +99,7 @@ class PostController extends Controller
             $signinout = SignInOut::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->Select('TotalTaskMins')->get();
             $totaltmin = $signinout[0]->TotalTaskMins;
             signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' =>  $totaltmin + $totalmanmins]);
-            return $this->success($task, 'Task created successfully');
+            return $this->success([$task], 'Task created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -222,7 +222,7 @@ class PostController extends Controller
         try {
             $id = request('id');
             $task = Tasks::find($id);
-            return $this->success($task , 'Task retrieved successfully');
+            return $this->success([$task] , 'Task retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSignInOutRequest;
 use App\Models\SignInOut;
+use App\Models\User;
+use App\Models\Userhourlyrate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 use Illuminate\Console\View\Components\Alert;
+use Illuminate\Support\Facades\Hash;
 
 class SignInOutController extends Controller
 {
@@ -51,6 +54,7 @@ class SignInOutController extends Controller
         try {
             $UserID = auth()->user()->id;
             $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
+
             if ($data->count() > 0) {
                 return $this->error('You allready signed in today you cannot sign in again please contact your organization', 400);
             } else {
@@ -59,6 +63,7 @@ class SignInOutController extends Controller
                         'user_id' => $UserID,
                         'EVENTDATE' => date('Y-m-d'),
                         'SIGNIN_TIME' => date('H:i:s'),
+                        'SIGNOUT_TIME' => '00:00',
                         'CREATEDSIGNIN_DATE' => date('Y-m-d'),
                         'CREATEDSIGNIN_TIME' => date('H:i:s'),
                         'TotalMins' => 0,
@@ -131,10 +136,19 @@ class SignInOutController extends Controller
                             'TotalMins' =>  $TotalMins,
                         ]
                     );
+                    $signInOut = [
+                        'SIGNIN_TIME' => $data->first()->SIGNIN_TIME,
+                        'SIGNOUT_TIME' => date('H:i:s'),
+                        'CREATEDSIGNIN_DATE' => $data->first()->CREATEDSIGNIN_DATE,
+                        'CREATEDSIGNIN_TIME' => $data->first()->CREATEDSIGNIN_TIME,
+                        'CREATEDSIGNOUT_DATE' => date('Y-m-d'),
+                        'CREATEDSIGNOUT_TIME' => date('H:i:s'),
+                        'TotalMins' => $TotalMins,
+                    ];
 
 
                     if ($signInOut) {
-                        return $this->success('Sign Out successfully', 201);
+                        return $this->success($signInOut, 'Sign Out created successfully', 201);
                     } else {
                         return $this->error('Sign Out failed',400);
                     }
@@ -157,16 +171,9 @@ class SignInOutController extends Controller
                         // 'TotalMins' =>  $TotalMins,
                     ]
                 );
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Sign In updated successfully by ' . auth()->user()->name,
-
-                ], 200);
+                return $this->success($signInOut, 'Sign In updated successfully by ' . auth()->user()->name, 201);
             } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You are not authorized to update this sign in out'
-                ], 200);
+                return $this->error('You are not authorized to update sign in out', 401);
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -217,7 +224,6 @@ class SignInOutController extends Controller
     {
         //get details of all user in current day
         try {
-            //join users table and sign in out table to get only user name
             $data = SignInOut::join('users', 'users.id', '=', 'sign_in_outs.user_id')->where('sign_in_outs.EVENTDATE', date('Y-m-d'))->Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins','sign_in_outs.EVENTDATE','sign_in_outs.TotalTaskMins','sign_in_outs.user_id')->get();
             if ($data->count() > 0) {
                 return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
@@ -228,4 +234,130 @@ class SignInOutController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
+    public function getcurrentsigninout()
+    {
+        //get current sign in out of user
+        try {
+            $UserID = auth()->user()->id;
+            $date= Request('date');
+           // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
+           // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
+        //    $test = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->where(function($q){
+        //     return $q->whereNotNull('EVENTDATE')
+        //         ->orWhereNotNull('SIGNIN_TIME')
+        //         ->orWhereNotNull('SIGNOUT_TIME');
+        //  })->get();
+
+        //  $test = SignInOut::selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
+
+        //     if ($test->count() > 0) {
+        //         return $this->success($test, 'A total of ' . $test->count() . ' Information(s) retrieved');
+        //     } else {
+        //         return $this->success ($test, 'No Information(s) retrieved');
+        //     }
+            $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
+            if ($data->count() > 0) {
+                return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
+            } else {
+                return $this->success ($data, 'No Information(s) retrieved');
+            }
+            // }else {
+            //     $data = [
+            //         'EVENTDATE' => $date,
+            //         'SIGNIN_TIME' => 'SIGNIN_TIME',
+            //          'SIGNOUT_TIME' => '00:00',
+            //          'TotalMins' => 'TotalMins',
+            //          'user_id' => $UserID,
+            //          'name' => 'name',
+            //          'tminsformated' => 'tminsformated',
+            //          'TotalTaskMins' => 'TotalTaskMins',
+            //          'ttaskminsformatted' => 'ttaskminsformatted',
+            //    ];
+            //     return $this->success($data ,' Information(s) retrieved' );
+            // }
+
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    //for admins
+    public function register(Request $request)
+    {
+        try {
+            $validator = validator()->make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:6',
+                'role' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 401);
+            }
+
+            $user = User::create(array_merge(
+                $validator->validated(),
+                ['password' => bcrypt($request->password)]
+            ));
+
+            $_hourlyinr = request('hourlyinr');
+            $_hourlyoverhead = request('hourlyoverhead');
+            $_monthid = request('monthid');
+            $_monthid = intval($_monthid);
+            $_yearid = request('yearid');
+            $_salary = request('salary');
+            //SELECT ID FROM userhourlyrate WHERE USERID=$SQL_ID AND MONTHID=$_monthid AND YEARID=$_yearid
+            $GETuserhourly = UserHourlyRate::where('USERID', $user->id)->where('MONTHID', $_monthid)->where('YEARID', $_yearid)->first();
+            $userhourlyrateid = $GETuserhourly->ID;
+            if ($userhourlyrateid == null) {
+              //INSERT INTO userhourlyrate (USERID, HOURLYINR, MONTHID, YEARID, SALARY, OVERHEAD) VALUES
+              $insertuserhourly = UserHourlyRate::create(array_merge(
+                $validator->validated(),
+                ['USERID' => $user->id, 'HOURLYINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
+
+            ));
+            return $this->success($insertuserhourly, 'User Hourly Rate Created');
+
+
+        } else {
+            //UPDATE userhourlyrate set HOURLYINR=$_hourlyinr, MONTHID=$_monthid, YEARID=$_yearid, SALARY=$_salary, OVERHEAD=$_hourlyoverhead WHERE ID=$userhourlyrateid
+            $updateuserhourly = UserHourlyRate::where('id', $userhourlyrateid)->update(array_merge(
+                $validator->validated(),
+                ['HOURLYINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
+            ));
+
+            return $this->success($updateuserhourly, 'User / Rates updated successfully.');
+
+            }
+
+            return $this->success([
+                'user' => $user,
+            ], 'Registration Successful', 200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+    public function getusersdata()
+    {
+        try {
+            $month = request('month');
+            $year = request('year');
+            $userid =  Request('id');
+           // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
+             $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')->where('userhourlyrate.MONTHID',$month)->where('userhourlyrate.YEARID', $year)->where('users.id', $userid)->orderBy('users.name', 'ASC')->get();
+
+            if ($data->count() > 0) {
+                return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
+            } else {
+                return $this->success ($data, 'No Information(s) retrieved');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+
+
+
 }
+
+

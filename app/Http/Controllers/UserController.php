@@ -36,14 +36,14 @@ class UserController extends Controller
 
             if (!$token = auth('api')->attempt($validator->validated())) {
                 return $this->error('Unauthorized', 401);
-            }else{
-           // $user = FacadesAuth::user();
-            return $this->success([
-                'user' => $user,
-                'token' => $token,
-                //'token2' =>$user->createToken("API TOKEN")->plainTextToken
-            ], 'Login Successful', 200);
-        }
+            } else {
+                // $user = FacadesAuth::user();
+                return $this->success([
+                    'user' => $user,
+                    'token' => $token,
+                    //'token2' =>$user->createToken("API TOKEN")->plainTextToken
+                ], 'Login Successful', 200);
+            }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -56,6 +56,8 @@ class UserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:6',
+                'role' => 'required',
+
 
             ]);
 
@@ -96,5 +98,18 @@ class UserController extends Controller
             'user' => auth()->user()
         ]);
     }
+    public function getuserbyid()
+    {
+        try {
 
+            $id = Request('id');
+            $month = Request('month');
+            $year = Request('year');
+
+            $getuser = User::where('UserID', $id)->whereMonth('DateFrom', $month)->whereYear('DateFrom', $year)->get();
+            return $this->success($getuser, 'A total of ' . $getuser->count() . ' Leave Information(s) retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
 }
