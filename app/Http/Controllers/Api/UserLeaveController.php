@@ -105,7 +105,7 @@ class UserLeaveController extends Controller
     public function update(StoreUserLeavesRequest $request, UserLeaves $userLeaves ,$id )
     {
        try{
-         $userId = auth()->user()->id;
+         $userId = Request('UserID');
 
             $userLeave = UserLeaves::where('id',$id)->where('UserID',$userId)->first();
             if($userId ==  $userLeave->UserID ){

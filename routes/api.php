@@ -46,9 +46,9 @@ use App\Http\Controllers\Api\StatusController;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
-//     return $request->user();
+    //     return $request->user();
 
-// });
+    // });
 
 
 
@@ -60,7 +60,7 @@ Route::group(['prefix' => 'admin'], function ($router) {
 
     Route::post('/login', [AdminController::class, 'login']);
 
-    Route::post('/register', [AdminController::class, 'register']);
+   // Route::post('/register', [AdminController::class, 'register']);
 
 });
 
@@ -76,7 +76,7 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/getusersdata', [SignInOutController::class, 'getusersdata']);
 
-    Route::post('/registeradmin', [SignInOutController::class, 'register']); ///ttttttaddd
+    Route::post('/register', [SignInOutController::class, 'register']);
 
 
 
@@ -109,11 +109,12 @@ Route::group(['prefix' => 'user'], function ($router) {
 
     Route::post('/login', [UserController::class, 'login']);
 
-    Route::post('/register', [UserController::class, 'register']); //register for user
+    //Route::post('/register', [UserController::class, 'register']); //register for user
 
     Route::get('/getstatus', [PostController::class, 'getStatus']); //get status
 
     Route::get('/getpriority', [PostController::class, 'getPriority']);   //get priority
+
 
 });
 
@@ -122,6 +123,7 @@ Route::group(['prefix' => 'user'], function ($router) {
 Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
 
 
+    Route::post('/getprojectstatusbyuser', [ProjectController::class, 'getprojectstatusbyuser']); //get type
 
     Route::get('/getuserdetails', [UserController::class, 'getUserDetails']);
 

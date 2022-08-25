@@ -9,6 +9,7 @@ use App\Models\Projectusers;
 use App\Models\Tasks;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ProjectController extends Controller
@@ -23,9 +24,9 @@ class ProjectController extends Controller
     {
         try {
             $projects = Projects::all();
-            if($projects->count() > 0){
-                return $this->success($projects, message: ' A total of '.$projects->count().' Project(s) retrieved');
-            }else{
+            if ($projects->count() > 0) {
+                return $this->success($projects, message: ' A total of ' . $projects->count() . ' Project(s) retrieved');
+            } else {
                 return $this->success($projects, message: 'No Project(s) found');
             }
         } catch (\Throwable $e) {
@@ -53,22 +54,22 @@ class ProjectController extends Controller
     {
         try {
             $project = Projects::create([
-                    //'Title' => $request->Title,
-                    'Description' => $request->Description,
-                    'UserID' =>$request->UserID,
-                    'ClientID' => $request->ClientID,
-                    'Comments'=> $request->Comments,
-                    'InternalComments'=> $request->InternalComments,
-                    'Billing'=> $request->Billing,
-                    'StartDate'=> $request->StartDate,
-                    'EndDate'=> $request->EndDate,
-                    'TotalHours'=> $request->TotalHours,
-                    'TotalClientHours'=> $request->TotalClientHours,
-                    'HourlyINR'=> $request->HourlyINR,
-                    'BillingType'=> $request->BillingType,
-                    'Status'=> $request->Status,
-                    'Currency'=> $request->Currency,
-                ]);
+                //'Title' => $request->Title,
+                'Description' => $request->Description,
+                'UserID' => $request->UserID,
+                'ClientID' => $request->ClientID,
+                'Comments' => $request->Comments,
+                'InternalComments' => $request->InternalComments,
+                'Billing' => $request->Billing,
+                'StartDate' => $request->StartDate,
+                'EndDate' => $request->EndDate,
+                'TotalHours' => $request->TotalHours,
+                'TotalClientHours' => $request->TotalClientHours,
+                'HourlyINR' => $request->HourlyINR,
+                'BillingType' => $request->BillingType,
+                'Status' => $request->Status,
+                'Currency' => $request->Currency,
+            ]);
             return $this->success($project, 'Project created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -165,50 +166,79 @@ class ProjectController extends Controller
 
     // }
 
-    public function getmyprojectstatus()
+    public function getmyprojectstatus() ///need fix
     {
         //SELECT projects.ID, projects.DESCRIPTION, projects.TOTALHOURS, projects.INTERNALCOMMENTS FROM projects LEFT JOIN projectusers ON (projects.ID = projectusers.`project_id` );
         try {
-           // $Userid = request('userid');
+            // $Userid = request('userid');
             $Userid = auth()->user()->id;
-            $projects = projects::leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
-                ->where('projectusers.user_id', $Userid)
-                ->orderBy('projects.Description', 'DESC')
-                ->get();
-                foreach ($projects as $project) {
-                    $project->TotalHours = gmdate("i:s", $project->TotalHours);
-                }
+             DB::statement("SET SQL_MODE=''");
+            // $projects = projects::leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
+            //     ->where('projectusers.user_id', $Userid)
+            //     ->SUM('projects.TotalHours')
+            //     ->groupBy('projects.Description')
+            //     ->get();
+            $projects = projects::select('projects.*', 'projectusers.*', DB::raw('SUM(projects.TotalHours) As TotalHours'))
+            ->leftJoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
+            //join task table
+            ->leftJoin('tasks', 'projects.id', '=', 'tasks.ProjectID')
+            ->where('projectusers.user_id', '=', $Userid)
+            ->groupBy('projects.Description')
+            ->get();
+            foreach ($projects as $project) {
+                $project->TotalHours = gmdate("i:s", $project->TotalHours);
+            }
+                //////////////////////////////////////////////// test ///////////////////////////////////////////////
+              //  print_r($project->id."ggggggggggggggggggggg");
 
-            if($projects->count() > 0){
+            //     //get projects table id from $projects
+            //     $projectid = $project->id;
 
-                return $this->success($projects, 'A total of '.$projects->count().' Information(s) retrieved successfully');
-            }else{
+            //    //print_r($projectids);
+
+            //     $tasks = tasks::select('EstimatedTim', 'CurrentlyAssignedToID')
+            //         ->where('ProjectID', $projectid)
+            //         ->get();
+            //     print_r($tasks->EstimatedTime);
+            //    $ET = $tasks->pluck('EstimatedTime');
+            //    $CA = $tasks->pluck('CurrentlyAssignedToID');
+            //    $data = str_replace(':', '.', $ET);
+            //    print_r($ET );
+
+            //    if (!(strpos($ET, '.') !== false)) $ET = $ET . '.0';
+
+            //    $d = explode(".", $data);
+            //    if ( $CA == $Userid){
+            //        $totalmanmins = $d[0] * 60 + $d[1];
+            //        $totaluserworkhours = date("i:s", ($totalmanmins));
+            //    $projects->totaluserworkhours = $totaluserworkhours;
+            //    print_r($projects->totaluserworkhours);
+            //    }
+            //    //convert TotalHours to hours and minutes
+            //    foreach ($projects as $project) {
+            //        $project->TotalHours = gmdate("i:s", $project->TotalHours);
+            //    }
+            //    print_r($project->TotalHours."helllo");
+            //    print_r($projects->totaluserworkhours."total user work hours");
+             //////////////////////////////////////////////// test ///////////////////////////////////////////////
+
+            if ($projects->count() > 0) {
+
+                return $this->success($projects, 'A total of ' . $projects->count() . ' Information(s) retrieved successfully');
+            } else {
                 return $this->success($projects, 'No Projects found for this user');
             }
-
-            // if(isset($projects)){
-            //     $pid= $projects->project_id;
-            //     $tasks = Tasks::select('EstimatedTime', 'CurrentlyAssignedToID')->where('ProjectID', '=', $pid)->get();
-            //     $ET = $tasks->EstimatedTime;
-            //     $CA = $tasks->CurrentlyAssignedToID;
-
-
-            //     return $this->success($tasks, 200);
-            // }else{
-            //     return $this->error('No projects found', 400);
-            // }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
-
     }
     public function saveprojectofuser(Request $request)
     {
         try {
-           // $project = Projects::find($request->id);
-           // $project->UserID = auth()->user()->id;
+            // $project = Projects::find($request->id);
+            // $project->UserID = auth()->user()->id;
             $projects = 0;
-            return $this->success(  $projects, 'Project saved successfully');
+            return $this->success($projects, 'Project saved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -216,19 +246,125 @@ class ProjectController extends Controller
     public function getprojectbyuser_id()
     {
         try {
-            $Userid = request('id');
-            print_r($Userid);
-            $projects = Projects::where('UserID', $Userid)->get();
-            if($projects->count() > 0){
+            //$Userid = request('id');
+            $Userid = auth()->user()->id;
+            //aviod duplicate projects
 
-                return $this->success($projects, 'A total of '.$projects->count().' Information(s) retrieved successfully');
-            }else{
+            $projects = Projects::where('UserID', $Userid)->groupBy('Description')->get();
+            if ($projects->count() > 0) {
+
+                return $this->success($projects, 'A total of ' . $projects->count() . ' Information(s) retrieved successfully');
+            } else {
                 return $this->success($projects, 'No Projects found for this user');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }
+//     public function getprojectstatusbyuser()  //only for test
+//     {
+//             try {
+//                 $totalmins = 0;
+//                 $totalmanmins = 0;
+//                  $Userid = auth()->user()->id;
+//                  $getprojectid = DB::table("tasks")->where("CURRENTLYASSIGNEDTOID", "=", $Userid)->distinct()->get(['PROJECTID']);
+//                  DB::statement("SET SQL_MODE=''");
+//                  $getprojectid  = $getprojectid->pluck('PROJECTID');
+
+//                      $projects = projects::select('projects.id', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments')
+//                      //->leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
+//                      //->where('projects.UserID', $Userid)
+//                      //  ->where('projects.id', 'IN', DB::raw("(SELECT DISTINCT PROJECTID FROM tasks WHERE CURRENTLYASSIGNEDTOID = $Userid)"))
+//                      ->whereIn('projects.id', $getprojectid)
+//                      ->orderBy('projects.Description', 'asc')
+//                      ->get();
+//                    // return $this->success($projects, 'A total of Information(s) retrieved successfully');
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                    $tasks = tasks::select('EstimatedTime', 'CurrentlyAssignedToID')
+//                     ->whereIn('ProjectID',  $getprojectid)
+//                     ->get();
+
+//                     foreach($projects as $project)
+//                     {
 
 
+//                     foreach ($tasks as $task)
+//                         {
+//                             $ET = $task->EstimatedTime;
+//                             $CA = $task ->CurrentlyAssignedToID;
+//                             $data = str_replace(':', '.', $ET);
+//                             if (!(strpos($ET, '.') !== false)) $ET = $ET . '.0';
+//                             $d = explode(".", $data);
+
+//                             $totalmins += $d[0] * 60 + $d[1];
+
+
+//                             if ($CA == $Userid) {
+//                                 $totalmanmins = $totalmanmins + ($d[0] * 60 + $d[1]);
+//                                 // $totalmins = $totalmins + $totalmanmins;
+//                             }
+
+//                            // print_r($totalmins."totalmins");
+
+//                            // $totalmins = gmdate('i:s', $totalmins);
+//                            // $totalmanmins = date("i:s", ($totalmanmins));
+
+
+
+//                            $profilestatus = [
+
+//                             'id' => $project->id,
+
+//                             'description' =>  $project->Description,
+
+//                             'userid' => $Userid,
+
+//                             'totalworkhours' => date("i:s", ($totalmins)),
+
+//                             'totaluserworkhours' => date("i:s", ($totalmanmins)),
+
+//                             'totalhours' => $project->TotalHours,
+
+//                             'internalcomments' => $project->InternalComments,
+//                         ];
+//                     }
+//                 }
+
+//                        return $this->success($profilestatus, 'A total of ' . $tasks->count() . ' Information(s) retrieved successfully');
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // $tasks = tasks::select('EstimatedTime', 'CurrentlyAssignedToID')
+                //     ->where('ProjectID', $projectid)
+                //     ->get();
+                //     foreach ($tasks as $task)
+                //     {
+                //         $ET = $task->EstimatedTime;
+                //         $CA = $task ->CurrentlyAssignedToID;
+                //         $data = str_replace(':', '.', $ET);
+                //         if (!(strpos($ET, '.') !== false)) $ET = $ET . '.0';
+                //         $d = explode(".", $data);
+
+                //         $totalmins += $d[0] * 60 + $d[1];
+
+
+                //         if ($CA == $Userid) {
+                //             $totalmanmins = $totalmanmins + ($d[0] * 60 + $d[1]);
+                //             // $totalmins = $totalmins + $totalmanmins;
+                //         }
+
+                //     }
+                //     $totalmins = gmdate('i:s', $totalmins);
+                //     $totaluserworkhours = date("i:s", ($totalmanmins));
+                //     $profilestatus = [
+                //         'totaluserworkhours' => $totaluserworkhours,
+                //         'totalmins' => $totalmins
+                //     ];
+
+                //    return $this->success($profilestatus, 'A total of ' . $tasks->count() . ' Information(s) retrieved successfully');
+
+        //     } catch (\Throwable $e) {
+        //         return $this->error($e->getMessage(), 500);
+        //     }
+        // }
 }
