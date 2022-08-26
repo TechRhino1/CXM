@@ -28,7 +28,10 @@ class PostController extends Controller
             $month = request('month');
             $year = request('year');
 
-            $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)->get();
+            $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+            ->orderby('EstimatedDate', 'desc')
+            ->get();
+
             if ($tasks->count() > 0) {
                 return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved' , 200);
             } else {
@@ -211,7 +214,7 @@ class PostController extends Controller
     {
         try {
             $user_id = auth()->user()->id;
-            $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '3')->get();
+            $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '3')->orderby('EstimatedDate', 'desc')->get();
             return $this->success($tasks , 'A total of '.$tasks->count().' Uncompleted Task(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -226,5 +229,24 @@ class PostController extends Controller
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
+    }
+    public function getalltasks()
+    { try {
+
+        $month = request('month');
+        $year = request('year');
+
+        $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+        ->orderby('EstimatedDate', 'desc')
+        ->get();
+
+        if ($tasks->count() > 0) {
+            return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved' , 200);
+        } else {
+            return $this->success($tasks , 'No Task(s) found');
+        }
+    } catch (\Throwable $e) {
+        return $this->error($e->getMessage(), 400);
+    }
     }
 }

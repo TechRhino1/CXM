@@ -602,17 +602,17 @@ class SignInOutController extends Controller
 
 
 
-            $_hourlyinr = request('hourlyinr');
+            $_hourlyinr = request('HourlyRate');
 
-            $_hourlyoverhead = request('hourlyoverhead');
+            $_hourlyoverhead = request('OverHead');
 
-            $_monthid = request('monthid');
+            $_monthid = request('MonthID');
 
-            $_monthid = intval($_monthid);
+           // $_monthid = intval($_monthid);
 
-            $_yearid = request('yearid');
+            $_yearid = request('YearID');
 
-            $_salary = request('salary');
+            $_salary = request('Salary');
 
             //SELECT ID FROM userhourlyrate WHERE USERID=$SQL_ID AND MONTHID=$_monthid AND YEARID=$_yearid
 
@@ -636,7 +636,7 @@ class SignInOutController extends Controller
 
                 ));
 
-                return $this->success($insertuserhourly, 'User Hourly Rate Created');
+                return $this->success($insertuserhourly, 'Registration Successful');
 
 
 
@@ -693,7 +693,13 @@ class SignInOutController extends Controller
 
            // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
 
-             $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')->where('userhourlyrate.MONTHID',$month)->where('userhourlyrate.YEARID', $year)->orderBy('users.name', 'ASC')->get();
+             $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')
+             ->where('userhourlyrate.MONTHID',$month)
+             ->where('userhourlyrate.YEARID', $year)
+
+                ->get();
+             //->orderBy('users.name', 'ASC')->get();
+
 
 
 

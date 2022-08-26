@@ -21,15 +21,21 @@ class UserLeaveController extends Controller
     {
         try{
 
-        $userLeaves = UserLeaves::where('DateFrom', '>=', date('Y-m-d'))->get();
-        //$userLeaves = UserLeaves::all();
+        $userLeaves = UserLeaves::where('DateFrom', '>=', date('Y-m-d'))
+        ->orderby('DateFrom', 'desc')
+        ->get();
+        foreach($userLeaves as $userLeave){
+            $userLeave->ApprovalStatus =($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
+        }
+        // $userLeaves = UserLeaves::all();
         $count = $userLeaves->count();
         return $this->success($userLeaves ,'A total of '.$count.' Leave Information(s) retrieved successfully');
         }catch(\Throwable $e){
             return $this->error($e->getMessage(), 500);
         }
     }
-
+    // 'approveddate' => ($userLeaves->ApprovedDate  == '0000-00-00 00:00:00' ? '' : $userLeaves->ApprovedDate),
+    // 'approvalcomments' =>$userLeaves->ApprovalComments,
     /**
      * Show the form for creating a new resource.
      *
@@ -160,10 +166,13 @@ class UserLeaveController extends Controller
         try{
         if($id !== null) {
 
-         $userLeave = UserLeaves::join ('users','users.id','=','user_leaves.UserID') ->where('user_leaves.UserID',$id)->Select('user_leaves.id','users.name','user_leaves.UserID','user_leaves.DateFrom','user_leaves.DateTo','user_leaves.Reason','user_leaves.ApprovalStatus','user_leaves.ApprovedUserID','user_leaves.ApprovedDate','user_leaves.ApprovalComments')->get();
+         $userLeaves = UserLeaves::join ('users','users.id','=','user_leaves.UserID') ->where('user_leaves.UserID',$id)->Select('user_leaves.id','users.name','user_leaves.UserID','user_leaves.DateFrom','user_leaves.DateTo','user_leaves.Reason','user_leaves.ApprovalStatus','user_leaves.ApprovedUserID','user_leaves.ApprovedDate','user_leaves.ApprovalComments')->get();
+         foreach($userLeaves as $userLeave){
+            $userLeave->ApprovalStatus =($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
+        }
           // $userLeave = UserLeaves::where('UserID', $id)->get();
-          $count = $userLeave->count();
-            return $this->success($userLeave,'A total of '.$count.' Leave Information(s) retrieved', 201);
+          $count = $userLeaves->count();
+            return $this->success($userLeaves,'A total of '.$count.' Leave Information(s) retrieved', 201);
         } else {
             return $this->error('User Leave Not Found', 404);
         }
@@ -177,9 +186,34 @@ class UserLeaveController extends Controller
     {
         try{
             $id=Request('id');
-            $userLeave = UserLeaves::where('id', $id)->first();
+            $userLeaves = UserLeaves::where('id', $id)
+            ->get();
+            //check leave status is 0 then sent status as Awaiting Approval and 1 as Approved
+            foreach($userLeaves as $userLeave){
+                $userLeave->ApprovalStatus =($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
+            }
+            if($userLeaves) {
+                return $this->success($userLeaves,'User Leave retrieved successfully', 201);
+            } else {
+                return $this->success($userLeaves,'User Leave Not Found', 200);
+            }
+        }
+    catch(\Throwable $e ){
+        return $this->error($e->getMessage(),400);
+    }
+    }
+    public function getleaveofalluser()
+    {
+        try{
+            $userLeave = UserLeaves::where('ApprovalStatus',request('status'))
+            ->join ('users','users.id','=','user_leaves.UserID')
+            ->orderby('user_leaves.DateFrom','desc')
+            ->get();
+            foreach($userLeave as $userLeave){
+                $userLeave->ApprovalStatus =($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
+            }
             if($userLeave) {
-                return $this->success([$userLeave],'User Leave retrieved successfully', 201);
+                return $this->success($userLeave,'User Leave retrieved successfully', 201);
             } else {
                 return $this->success($userLeave,'User Leave Not Found', 200);
             }

@@ -158,9 +158,17 @@ class UserController extends Controller
 
             $year = Request('year');
 
-            $getuser = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')->where('userhourlyrate.MONTHID', $month)->where('userhourlyrate.YEARID', $year)->where('users.id', $userid)->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')->get();
-
+            $getuser = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')
+            ->wheremonth('users.created_at', $month)
+            ->whereyear('users.created_at', $year)
+            ->where('users.id', $userid)
+            ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')
+            ->get();
+            if($getuser->count() > 0){
             return $this->success($getuser, 'A total of ' . $getuser->count() . 'Information(s) retrieved successfully');
+            }else{
+                return $this->success($getuser, 'No Information retrieved');
+            }
 
         } catch (\Throwable $e) {
 

@@ -81,6 +81,7 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
 
 
+
     //route to Projects
 
 
@@ -89,6 +90,8 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/projects_delete/{id}', [ProjectController::class, 'destroy']);
 
     Route::post('/projects_update/{id}', [ProjectController::class, 'update']);
+
+    Route::post('/projectreport', [ProjectController::class, 'getprojectstatusbystatus']);  //26/8/2022
 
 
 
@@ -114,6 +117,10 @@ Route::group(['prefix' => 'user'], function ($router) {
     Route::get('/getstatus', [PostController::class, 'getStatus']); //get status
 
     Route::get('/getpriority', [PostController::class, 'getPriority']);   //get priority
+
+    ///rout to leave
+
+    Route::post('/leavesbystatus', [UserLeaveController::class, 'getleaveofalluser']);
 
 
 });
@@ -159,6 +166,7 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
     Route::post('/getleavebyid', [UserLeaveController::class, 'getleavebyleaveid']); //get leave by leave id
 
     // route to Tasks
+    Route::post('/getalltasks', [PostController::class, 'getalltasks']);  ///get all tasks by month and year
 
     Route::post('/gettasks', [PostController::class, 'index']); //per month and year
 
