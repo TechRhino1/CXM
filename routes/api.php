@@ -44,27 +44,6 @@ use App\Http\Controllers\Api\StatusController;
 
 
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-
-    //     return $request->user();
-
-    // });
-
-
-
-
-
-////login and register for adminController
-
-Route::group(['prefix' => 'admin'], function ($router) {
-
-    Route::post('/login', [AdminController::class, 'login']);
-
-   // Route::post('/register', [AdminController::class, 'register']);
-
-});
-
-
 
 Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
 
@@ -78,12 +57,7 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/register', [SignInOutController::class, 'register']);
 
-
-
-
-
     //route to Projects
-
 
     Route::post('/projects', [ProjectController::class, 'store']);
 
@@ -91,17 +65,11 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/projects_update/{id}', [ProjectController::class, 'update']);
 
-    Route::post('/projectreport', [ProjectController::class, 'getprojectstatusbystatus']);  //26/8/2022
-
-
-
-
     //route to sign in out
 
     Route::post('/signinouts_delete/{id}', [SignInOutController::class, 'destroy']);
 
     Route::post('/signinouts_admin', [SignInOutController::class, 'update']);
-
 });
 
 
@@ -121,8 +89,6 @@ Route::group(['prefix' => 'user'], function ($router) {
     ///rout to leave
 
     Route::post('/leavesbystatus', [UserLeaveController::class, 'getleaveofalluser']);
-
-
 });
 
 
@@ -148,9 +114,9 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
 
     Route::post('/signinouts_update', [SignInOutController::class, 'update']);
 
-    Route::get('/signinoutsdetails', [SignInOutController::class, 'getusersigndetails']);//get user detail of current day
+    Route::get('/signinoutsdetails', [SignInOutController::class, 'getusersigndetails']); //get user detail of current day
 
-    Route::post('/getcurrentsigninout', [SignInOutController::class, 'getcurrentsigninout']);//get user detail of user today with userid and date
+    Route::post('/getcurrentsigninout', [SignInOutController::class, 'getcurrentsigninout']); //get user detail of user today with userid and date
     // route to leave
 
     Route::post('/userleaves', [UserLeaveController::class, 'store']);
@@ -180,14 +146,11 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
 
     // route to projects
     Route::get('/projects', [ProjectController::class, 'index']); //get all projects
-    Route::get('/myprojectstatus', [ProjectController::class, 'getmyprojectstatus']);//get user detail of project status
+    Route::get('/myprojectstatus', [ProjectController::class, 'getmyprojectstatus']); //get user detail of project status
     Route::post('/saveprojectuser', [ProjectController::class, 'saveprojectofuser']); ///get project of user customize
     Route::post('/projectsbyuser', [ProjectController::class, 'getprojectbyuser_id']); //get project by user id
     Route::post('/gettaskdetails', [PostController::class, 'gettaskdetails']);
+    Route::post('/projectreport', [ProjectController::class, 'getprojectstatusbystatus']);  //26/8/2022
+    Route::post('/getprojectsInProgress', [ProjectController::class, 'projectsInProgress']); //get project status
 
 });
-
-
-
-
-
