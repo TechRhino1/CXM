@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\UserLeaveController;
 
 use App\Http\Controllers\Api\SignInOutController;
 
+use App\Http\Controllers\Api\ClientsController;
+
 use App\Http\Controllers\UserController;
 
 use App\Http\Controllers\Api\StatusController;
@@ -23,23 +25,14 @@ use App\Http\Controllers\Api\StatusController;
 
 
 /*
-
 |--------------------------------------------------------------------------
-
 | API Routes
-
 |--------------------------------------------------------------------------
-
 |
-
 | Here is where you can register API routes for your application. These
-
 | routes are loaded by the RouteServiceProvider within a group which
-
 | is assigned the "api" middleware group. Enjoy building your API!
-
 |
-
 */
 
 
@@ -70,6 +63,21 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/signinouts_delete/{id}', [SignInOutController::class, 'destroy']);
 
     Route::post('/signinouts_admin', [SignInOutController::class, 'update']);
+
+    //route to client
+
+
+    Route::get('/clients', [ClientsController::class, 'index']);
+
+    Route::post('/addclients', [ClientsController::class, 'store']);
+
+    Route::post('/clients_delete', [ClientsController::class, 'destroy']);
+
+    Route::post('/clients_update/{id}', [ClientsController::class, 'update']);
+
+
+
+
 });
 
 
@@ -88,7 +96,6 @@ Route::group(['prefix' => 'user'], function ($router) {
 
     ///rout to leave
 
-    Route::post('/leavesbystatus', [UserLeaveController::class, 'getleaveofalluser']);
 });
 
 
@@ -110,7 +117,7 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
 
     Route::post('/getsigninouts', [SignInOutController::class, 'getsignioutbyuserid']); //get sign in out by user id in given month and year
 
-    Route::get('/signinouts', [SignInOutController::class, 'index']);
+    Route::post('/getallsigninout', [SignInOutController::class, 'index']);
 
     Route::post('/signinouts_update', [SignInOutController::class, 'update']);
 
@@ -130,6 +137,8 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
     Route::post('/userleaves_update/{id}', [UserLeaveController::class, 'update']);
 
     Route::post('/getleavebyid', [UserLeaveController::class, 'getleavebyleaveid']); //get leave by leave id
+
+    Route::post('/leavesbystatus', [UserLeaveController::class, 'getleaveofalluser']); //get leave by status
 
     // route to Tasks
     Route::post('/getalltasks', [PostController::class, 'getalltasks']);  ///get all tasks by month and year
@@ -152,5 +161,4 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
     Route::post('/gettaskdetails', [PostController::class, 'gettaskdetails']);
     Route::post('/projectreport', [ProjectController::class, 'getprojectstatusbystatus']);  //26/8/2022
     Route::post('/getprojectsInProgress', [ProjectController::class, 'projectsInProgress']); //get project status
-
 });

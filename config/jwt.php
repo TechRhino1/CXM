@@ -101,7 +101,7 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 60),
+    'ttl' => env('JWT_TTL', 3600),
 
     /*
     |--------------------------------------------------------------------------
@@ -272,7 +272,7 @@ return [
         |
         */
         'jwt' => Tymon\JWTAuth\Providers\JWT\Namshi::class,
-        
+
         //'jwt' => Tymon\JWTAuth\Providers\JWT\Lcobucci::class,
 
         /*

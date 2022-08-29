@@ -213,9 +213,9 @@ class UserLeaveController extends Controller
                 $userLeave->ApprovalStatus =($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
             }
             if($userLeave) {
-                return $this->success($userLeave,'User Leave retrieved successfully', 201);
+                return $this->success([$userLeave],'User Leave retrieved successfully', 200);
             } else {
-                return $this->success($userLeave,'User Leave Not Found', 200);
+                return $this->success($userLeave,'User Leave Not Found', 201);
             }
         }
     catch(\Throwable $e ){

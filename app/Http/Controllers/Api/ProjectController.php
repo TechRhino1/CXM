@@ -138,75 +138,8 @@ class ProjectController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
-    // public function getprojectstatus()
-    // {
 
 
-
-    // }
-
-    public function getmyprojectstatus() ///need fix
-    {
-        //SELECT projects.ID, projects.DESCRIPTION, projects.TOTALHOURS, projects.INTERNALCOMMENTS FROM projects LEFT JOIN projectusers ON (projects.ID = projectusers.`project_id` );
-        try {
-            // $Userid = request('userid');
-            $Userid = auth()->user()->id;
-            DB::statement("SET SQL_MODE=''");
-
-            $projects = projects::select('projects.*', 'projectusers.*', DB::raw('SUM(projects.TotalHours) As TotalHours'))
-                ->leftJoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
-                //join task table
-                ->leftJoin('tasks', 'projects.id', '=', 'tasks.ProjectID')
-                ->where('projectusers.user_id', '=', $Userid)
-                ->groupBy('projects.Description')
-                ->get();
-            foreach ($projects as $project) {
-                $project->TotalHours = gmdate("i:s", $project->TotalHours);
-            }
-            //////////////////////////////////////////////// test ///////////////////////////////////////////////
-            //  print_r($project->id."ggggggggggggggggggggg");
-
-            //     //get projects table id from $projects
-            //     $projectid = $project->id;
-
-            //    //print_r($projectids);
-
-            //     $tasks = tasks::select('EstimatedTim', 'CurrentlyAssignedToID')
-            //         ->where('ProjectID', $projectid)
-            //         ->get();
-            //     print_r($tasks->EstimatedTime);
-            //    $ET = $tasks->pluck('EstimatedTime');
-            //    $CA = $tasks->pluck('CurrentlyAssignedToID');
-            //    $data = str_replace(':', '.', $ET);
-            //    print_r($ET );
-
-            //    if (!(strpos($ET, '.') !== false)) $ET = $ET . '.0';
-
-            //    $d = explode(".", $data);
-            //    if ( $CA == $Userid){
-            //        $totalmanmins = $d[0] * 60 + $d[1];
-            //        $totaluserworkhours = date("i:s", ($totalmanmins));
-            //    $projects->totaluserworkhours = $totaluserworkhours;
-            //    print_r($projects->totaluserworkhours);
-            //    }
-            //    //convert TotalHours to hours and minutes
-            //    foreach ($projects as $project) {
-            //        $project->TotalHours = gmdate("i:s", $project->TotalHours);
-            //    }
-            //    print_r($project->TotalHours."helllo");
-            //    print_r($projects->totaluserworkhours."total user work hours");
-            //////////////////////////////////////////////// test ///////////////////////////////////////////////
-
-            if ($projects->count() > 0) {
-
-                return $this->success($projects, 'A total of ' . $projects->count() . ' Information(s) retrieved successfully');
-            } else {
-                return $this->success($projects, 'No Projects found for this user');
-            }
-        } catch (\Throwable $e) {
-            return $this->error($e->getMessage(), 500);
-        }
-    }
     public function saveprojectofuser(Request $request)
     {
         try {

@@ -43,10 +43,12 @@ class SignInOut extends Model
     {
         //$tminsformatted = gmdate('H:i:s', $data->first()->TotalMins);
         // return gmdate('H:i:s', $this->TotalMins);
+        date_default_timezone_set('utc');
         return date('H:i:s', $this->TotalMins * 60);
     }
     public function getTtaskminsformattedAttribute()
     {
+        date_default_timezone_set('utc');
         return date('H:i:s', $this->TotalTaskMins * 60);
     }
     public function getNameAttribute()

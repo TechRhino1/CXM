@@ -99,9 +99,15 @@ class PostController extends Controller
 
             $totalmanmins = $d[0] * 60 + $d[1];
             //get TotalTaskMins of user today
-            $signinout = SignInOut::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->Select('TotalTaskMins')->get();
-            $totaltmin = $signinout[0]->TotalTaskMins;
-            signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' =>  $totaltmin + $totalmanmins]);
+            //check if user role is admin
+            $user = auth()->user();
+            $role = $user->role;
+            if ($role == '1') {
+
+                $signinout = SignInOut::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->Select('TotalTaskMins')->get();
+                $totaltmin = $signinout[0]->TotalTaskMins;
+                signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' =>  $totaltmin + $totalmanmins]);
+            }
             return $this->success([$task], 'Task created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -231,7 +237,8 @@ class PostController extends Controller
         }
     }
     public function getalltasks()
-    { try {
+    {
+         try {
 
         $month = request('month');
         $year = request('year');

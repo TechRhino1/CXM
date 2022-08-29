@@ -51,19 +51,18 @@ class SignInOutController extends Controller
     {
 
         try {
+            $month = Request('month');
+            $year = Request('year');
 
-            $signInOuts = SignInOut::all();
+            $signInOuts = SignInOut::whereMonth('created_at', $month)->whereYear('created_at', $year)->get();
 
             $count = $signInOuts->count();
 
-            return $this->success($signInOuts, message: ' A total of '.$count.' Leave Information(s) retrieved', status: 200);
-
+            return $this->success($signInOuts, message: ' A total of ' . $count . ' Leave Information(s) retrieved', status: 200);
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
 
@@ -114,8 +113,7 @@ class SignInOutController extends Controller
 
             if ($data->count() > 0) {
 
-                return $this->error('You allready signed in today you cannot sign in again please contact your organization', 400);
-
+                return $this->success($data, 'You allready signed in today at ' . $data->SIGNIN_TIME . ' you cannot sign in again please contact your organization', 200);
             } else {
 
                 $signInOut = SignInOut::create(
@@ -146,22 +144,16 @@ class SignInOutController extends Controller
 
                 if ($signInOut) {
 
-                    return $this->success($signInOut, 'Sign In created successfully', 201);
-
+                    return $this->success($signInOut, 'You have successfully signed in', 200);
                 } else {
 
                     return $this->error('Sign In creation failed', 400);
-
                 }
-
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
 
@@ -247,7 +239,6 @@ class SignInOutController extends Controller
                         'message' => 'You need to sign in first'
 
                     ], 200);
-
                 } elseif ($data->count() > 0) {
 
                     $SIGNOUT_TIME = date('H:i:s');
@@ -299,19 +290,14 @@ class SignInOutController extends Controller
                     if ($signInOut) {
 
                         return $this->success($signInOut, 'Sign Out created successfully', 201);
-
                     } else {
 
-                        return $this->error('Sign Out failed',400);
-
+                        return $this->error('Sign Out failed', 400);
                     }
-
                 } else {
 
                     return $this->error('You allready signed out today you cannot sign out again please contact your organization', 401);
-
                 }
-
             } elseif (auth()->user()->role == '0') { //only admin can update sign in out
 
 
@@ -345,19 +331,14 @@ class SignInOutController extends Controller
                 );
 
                 return $this->success($signInOut, 'Sign In updated successfully by ' . auth()->user()->name, 201);
-
             } else {
 
                 return $this->error('You are not authorized to update sign in out', 401);
-
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
 
@@ -387,19 +368,14 @@ class SignInOutController extends Controller
                 $signInOut->delete();
 
                 return $this->success('Sign In deleted successfully', $signInOut, 200);
-
             } else {
 
                 return $this->error('You are not authorized to delete this sign in out', 401);
-
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
     public function getsignioutbyuserid()
@@ -412,7 +388,7 @@ class SignInOutController extends Controller
 
             $year = request('year');
 
-            $UserID = auth()->user()->id;
+            $UserID = request('user');
 
             $data = SignInOut::where('user_id', $UserID)->whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)->get();
 
@@ -422,24 +398,15 @@ class SignInOutController extends Controller
 
                 $count = $data->count();
 
-                return $this->success($data , 'A total of '.$count.' Information(s) retrieved');
-
+                return $this->success($data, 'A total of ' . $count . ' Information(s) retrieved');
             } else {
 
-                return $this->success($data , 'No Information(s) retrieved');
-
+                return $this->success($data, 'No Information(s) retrieved');
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
-
-
-
-
     }
 
     public function getusersigndetails()
@@ -450,24 +417,22 @@ class SignInOutController extends Controller
 
         try {
 
-            $data = SignInOut::join('users', 'users.id', '=', 'sign_in_outs.user_id')->where('sign_in_outs.EVENTDATE', date('Y-m-d'))->Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins','sign_in_outs.EVENTDATE','sign_in_outs.TotalTaskMins','sign_in_outs.user_id')->get();
+            $data = SignInOut::join('users', 'users.id', '=', 'sign_in_outs.user_id')
+                ->where('sign_in_outs.EVENTDATE', date('Y-m-d'))
+                ->Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins', 'sign_in_outs.EVENTDATE', 'sign_in_outs.TotalTaskMins', 'sign_in_outs.user_id')
+                ->get();
 
             if ($data->count() > 0) {
 
                 return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
-
             } else {
 
-                return $this->success ($data, 'No Information(s) retrieved');
-
+                return $this->success($data, 'No Information(s) retrieved');
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
     public function getcurrentsigninout()
@@ -480,48 +445,46 @@ class SignInOutController extends Controller
 
             $UserID = auth()->user()->id;
 
-            $date= Request('date');
+            $date = Request('date');
 
-           // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
+            // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
 
-           // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
+            // $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
 
-        //    $test = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->where(function($q){
+            //    $test = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->where(function($q){
 
-        //     return $q->whereNotNull('EVENTDATE')
+            //     return $q->whereNotNull('EVENTDATE')
 
-        //         ->orWhereNotNull('SIGNIN_TIME')
+            //         ->orWhereNotNull('SIGNIN_TIME')
 
-        //         ->orWhereNotNull('SIGNOUT_TIME');
+            //         ->orWhereNotNull('SIGNOUT_TIME');
 
-        //  })->get();
-
-
-
-        //  $test = SignInOut::selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
+            //  })->get();
 
 
 
-        //     if ($test->count() > 0) {
+            //  $test = SignInOut::selectRaw('ifnull(EVENTDATE,"") as EVENTDATE,ifnull(SIGNIN_TIME,"") as SIGNIN_TIME,ifnull(SIGNOUT_TIME,"") as SIGNOUT_TIME,ifnull(TotalMins,"") as TotalMins,ifnull(TotalTaskMins,"") as TotalTaskMins,ifnull(user_id,"") as user_id')->get();
 
-        //         return $this->success($test, 'A total of ' . $test->count() . ' Information(s) retrieved');
 
-        //     } else {
 
-        //         return $this->success ($test, 'No Information(s) retrieved');
+            //     if ($test->count() > 0) {
 
-        //     }
+            //         return $this->success($test, 'A total of ' . $test->count() . ' Information(s) retrieved');
+
+            //     } else {
+
+            //         return $this->success ($test, 'No Information(s) retrieved');
+
+            //     }
 
             $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
 
             if ($data->count() > 0) {
 
                 return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
-
             } else {
 
-                return $this->success ($data, 'No Information(s) retrieved');
-
+                return $this->success($data, 'No Information(s) retrieved');
             }
 
             // }else {
@@ -557,9 +520,7 @@ class SignInOutController extends Controller
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
 
     //for admins
@@ -587,7 +548,6 @@ class SignInOutController extends Controller
             if ($validator->fails()) {
 
                 return response()->json(['error' => $validator->errors()], 401);
-
             }
 
 
@@ -608,7 +568,7 @@ class SignInOutController extends Controller
 
             $_monthid = request('MonthID');
 
-           // $_monthid = intval($_monthid);
+            // $_monthid = intval($_monthid);
 
             $_yearid = request('YearID');
 
@@ -622,7 +582,7 @@ class SignInOutController extends Controller
 
             $userhourlyrateid = 0;
 
-            if ( $GETuserhourly == null) {
+            if ($GETuserhourly == null) {
 
                 //INSERT INTO userhourlyrate (USERID, HOURLYINR, MONTHID, YEARID, SALARY, OVERHEAD) VALUES
 
@@ -637,31 +597,23 @@ class SignInOutController extends Controller
                 ));
 
                 return $this->success($insertuserhourly, 'Registration Successful');
-
-
-
-
-
             } else {
 
-            $userhourlyrateid = $GETuserhourly->id;
+                $userhourlyrateid = $GETuserhourly->id;
 
-            //UPDATE userhourlyrate set HOURLYINR=$_hourlyinr, MONTHID=$_monthid, YEARID=$_yearid, SALARY=$_salary, OVERHEAD=$_hourlyoverhead WHERE ID=$userhourlyrateid
+                //UPDATE userhourlyrate set HOURLYINR=$_hourlyinr, MONTHID=$_monthid, YEARID=$_yearid, SALARY=$_salary, OVERHEAD=$_hourlyoverhead WHERE ID=$userhourlyrateid
 
-            $updateuserhourly = UserHourlyRate::where('id', $userhourlyrateid)->update(array_merge(
+                $updateuserhourly = UserHourlyRate::where('id', $userhourlyrateid)->update(array_merge(
 
-                $validator->validated(),
+                    $validator->validated(),
 
-                ['HOURLYINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
+                    ['HOURLYINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
 
-            ));
-
-
-
-            return $this->success($updateuserhourly, 'User / Rates updated successfully.');
+                ));
 
 
 
+                return $this->success($updateuserhourly, 'User / Rates updated successfully.');
             }
 
 
@@ -671,13 +623,10 @@ class SignInOutController extends Controller
                 'user' => $user,
 
             ], 'Registration Successful', 200);
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 500);
-
         }
-
     }
 
     public function getusersdata()
@@ -691,14 +640,14 @@ class SignInOutController extends Controller
             $year = request('year');
 
 
-           // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
+            // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
 
-             $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')
-             ->where('userhourlyrate.MONTHID',$month)
-             ->where('userhourlyrate.YEARID', $year)
-
+            $data = User::LEFTJOIN( 'userhourlyrate', 'users.id', '=', 'userhourlyrate.UserID')
+            ->select('users.*','userhourlyrate.HourlyRate','userhourlyrate.MonthID','userhourlyrate.YEARID','userhourlyrate.SALARY','userhourlyrate.OVERHEAD','userhourlyrate.UserID')
+                ->where('userhourlyrate.MONTHID', $month)
+                ->where('userhourlyrate.YEARID', $year)
                 ->get();
-             //->orderBy('users.name', 'ASC')->get();
+            //->orderBy('users.name', 'ASC')->get();
 
 
 
@@ -706,30 +655,13 @@ class SignInOutController extends Controller
             if ($data->count() > 0) {
 
                 return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
-
             } else {
 
-                return $this->success ($data, 'No Information(s) retrieved');
-
+                return $this->success($data, 'No Information(s) retrieved');
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
-
         }
-
     }
-
-
-
-
-
-
-
 }
-
-
-
-
-
