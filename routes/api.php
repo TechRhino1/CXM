@@ -56,6 +56,8 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/projects_update/{id}', [ProjectController::class, 'update']);
 
+    Route::post('/getprojectbyid', [ProjectController::class, 'getprojectbyid']);
+
     //route to sign in out
 
     Route::post('/signinouts_delete/{id}', [SignInOutController::class, 'destroy']);

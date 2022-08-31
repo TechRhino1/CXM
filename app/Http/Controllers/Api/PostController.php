@@ -63,10 +63,7 @@ class PostController extends Controller
         try {
             $user_id = auth()->user()->id;
             $date = date('Y-m-d');
-
-
             $task = tasks::create([
-                //'user_id' => $user_id,
                 'Title' => $request->Title,
                 'Description' => $request->Description,
                 'ProjectID' => $request->ProjectID,
@@ -163,11 +160,7 @@ class PostController extends Controller
 
                 signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]); //need fix
 
-                return $this->success([
-                    'success' => true,
-                    'message' => 'Task updated successfully',
-                    'task' => $tasks
-                ], 200);
+                return $this->success($tasks, 'Task updated successfully');
             }
             return $this->error('Task not updated', 500);
         } catch (\Throwable $e) {

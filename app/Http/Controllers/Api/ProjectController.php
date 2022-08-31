@@ -319,4 +319,22 @@ class ProjectController extends Controller
             return $this->error($e->getMessage(), 500);
         }
     }
+    public function getprojectbyid()
+    {
+        try {
+            $getprojectid = request('id');
+            $projects = Projects::join ('users', 'users.id', '=', 'projects.UserID')
+                ->where('projects.id', $getprojectid)
+                ->select('projects.*', 'users.name')
+                ->get();
+
+            if ($projects->count() > 0) {
+                return $this->success($projects,' Information(s) retrieved successfully');
+            } else {
+                return $this->success($projects, 'No Projects found');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+}
 }
