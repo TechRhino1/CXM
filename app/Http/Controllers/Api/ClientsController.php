@@ -18,10 +18,12 @@ class ClientsController extends Controller
     public function index()
     {
         try {
+
             $clients = Clients::all();
-            return $this->success($clients , 'A total of '.$clients->count().' Client(s) retrieved' , 200);
-        }
-        catch (\Exception $e) {
+
+            return $this->success($clients, 'A total of ' . $clients->count() . ' Client(s) retrieved', 200);
+
+        } catch (\Exception $e) {
             return $this->error($e->getMessage(), 400);
         }
     }
@@ -44,14 +46,13 @@ class ClientsController extends Controller
      */
     public function store(Request $request)
     {
-         try{
+        try {
             $data = $request->all();
             $addclient = Clients::create($data);
             return $this->success($addclient, 'New Client created successfully');
-         }
-            catch(\Throwable $e){
-                return $this->error($e->getMessage(), 500);
-            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -83,16 +84,15 @@ class ClientsController extends Controller
      * @param  \App\Models\Clients  $clients
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request,$id)
+    public function update(Request $request, $id)
     {
-       try{
-        $clientid = $id;
-        $updateclient = Clients::where('id', $clientid)->update($request->all());
-        return $this->success($updateclient, 'Client updated successfully');
-       }
-       catch(\Throwable $e){
-        return $this->error($e->getMessage(), 500);
-       }
+        try {
+            $clientid = $id;
+            $updateclient = Clients::where('id', $clientid)->update($request->all());
+            return $this->success($updateclient, 'Client updated successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -103,12 +103,11 @@ class ClientsController extends Controller
      */
     public function destroy(Clients $clients)
     {
-        try{
+        try {
             $id = Request('id');
             $deleteclient = Clients::where('id', $id)->delete();
             return $this->success($deleteclient, 'Client deleted successfully');
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }

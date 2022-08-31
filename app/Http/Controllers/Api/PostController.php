@@ -29,13 +29,13 @@ class PostController extends Controller
             $year = request('year');
 
             $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
-            ->orderby('EstimatedDate', 'desc')
-            ->get();
+                ->orderby('EstimatedDate', 'desc')
+                ->get();
 
             if ($tasks->count() > 0) {
-                return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved' , 200);
+                return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved', 200);
             } else {
-                return $this->success($tasks , 'No Task(s) found');
+                return $this->success($tasks, 'No Task(s) found');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -74,14 +74,14 @@ class PostController extends Controller
                 'EstimatedDate' => $request->EstimatedDate,
                 'EstimatedTime' => $request->EstimatedTime,
                 'Priority' => $request->Priority,
-                "InitiallyAssignedToID" =>$user_id, //need fix
-                "CurrentlyAssignedToID"=>$user_id, //need fix
+                "InitiallyAssignedToID" => $user_id, //need fix
+                "CurrentlyAssignedToID" => $user_id, //need fix
                 'CurrentStatus' => $request->CurrentStatus,
-                'CompletedDate' => date('Y-m-d' ),
+                'CompletedDate' => date('Y-m-d'),
                 'CompletedTime' => date('H:i:s'),
                 'created_at' => $date,
                 'updated_at' => $date,
-                'ParentID' => 0 ,
+                'ParentID' => 0,
             ]);
             // insert into productuser table
             Projectusers::create([
@@ -162,7 +162,7 @@ class PostController extends Controller
                 $totalmanmins = $d[0] * 60 + $d[1];
 
                 signinout::where('user_id', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]); //need fix
-                //////////////////////////////
+
                 return $this->success([
                     'success' => true,
                     'message' => 'Task updated successfully',
@@ -201,7 +201,7 @@ class PostController extends Controller
     {
         try {
             $status = Status::all();
-            return $this->success($status , 'A total of '.$status->count().' Status(s) retrieved successfully');
+            return $this->success($status, 'A total of ' . $status->count() . ' Status(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -210,7 +210,7 @@ class PostController extends Controller
     {
         try {
             $priority = Priority::all();
-            return $this->success($priority , 'A total of '.$priority->count().' Priority(s) retrieved successfully');
+            return $this->success($priority, 'A total of ' . $priority->count() . ' Priority(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -221,7 +221,7 @@ class PostController extends Controller
         try {
             $user_id = auth()->user()->id;
             $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '3')->orderby('EstimatedDate', 'desc')->get();
-            return $this->success($tasks , 'A total of '.$tasks->count().' Uncompleted Task(s) retrieved successfully');
+            return $this->success($tasks, 'A total of ' . $tasks->count() . ' Uncompleted Task(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -231,29 +231,29 @@ class PostController extends Controller
         try {
             $id = request('id');
             $task = Tasks::find($id);
-            return $this->success([$task] , 'Task retrieved successfully');
+            return $this->success([$task], 'Task retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
     }
     public function getalltasks()
     {
-         try {
+        try {
 
-        $month = request('month');
-        $year = request('year');
+            $month = request('month');
+            $year = request('year');
 
-        $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
-        ->orderby('EstimatedDate', 'desc')
-        ->get();
+            $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                ->orderby('EstimatedDate', 'desc')
+                ->get();
 
-        if ($tasks->count() > 0) {
-            return $this->success($tasks , 'A total of '.$tasks->count().' Task(s) retrieved' , 200);
-        } else {
-            return $this->success($tasks , 'No Task(s) found');
+            if ($tasks->count() > 0) {
+                return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved', 200);
+            } else {
+                return $this->success($tasks, 'No Task(s) found');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
-    } catch (\Throwable $e) {
-        return $this->error($e->getMessage(), 400);
-    }
     }
 }

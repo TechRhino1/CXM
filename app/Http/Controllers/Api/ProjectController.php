@@ -140,7 +140,7 @@ class ProjectController extends Controller
     }
 
 
-    public function saveprojectofuser(Request $request)
+    public function saveprojectofuser(Request $request) //need clarification
     {
         try {
             // $project = Projects::find($request->id);
@@ -168,7 +168,7 @@ class ProjectController extends Controller
             return $this->error($e->getMessage(), 500);
         }
     }
-    public function getprojectstatusbyuser()  //only for test
+    public function getprojectstatusbyuser()
     {
         try {
             $totalmins = 0;
@@ -208,7 +208,6 @@ class ProjectController extends Controller
                     }
                 }
                 // $totalmins = gmdate('i:s', $totalmins);
-                // $totalmanmins = date("i:s", ($totalmanmins));
 
                 $pro = [
 
@@ -288,11 +287,9 @@ class ProjectController extends Controller
                     if ($CA == $Userid) {
 
                         $totalmanmins = $totalmanmins + ($d[0] * 60 + $d[1]);
-                        // $totalmins = $totalmins + $totalmanmins;
+
                     }
                 }
-                // $totalmins = gmdate('i:s', $totalmins);
-                // $totalmanmins = date("i:s", ($totalmanmins));
 
                 $pro = [
 

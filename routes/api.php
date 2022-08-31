@@ -40,8 +40,6 @@ use App\Http\Controllers\Api\StatusController;
 
 Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], function ($router) {
 
-
-
     Route::post('/logout', [UserController::class, 'logout']);
 
     Route::post('/getuserbyid', [UserController::class, 'getuserbyid']);
@@ -66,7 +64,6 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     //route to client
 
-
     Route::get('/clients', [ClientsController::class, 'index']);
 
     Route::post('/addclients', [ClientsController::class, 'store']);
@@ -74,10 +71,6 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/clients_delete', [ClientsController::class, 'destroy']);
 
     Route::post('/clients_update/{id}', [ClientsController::class, 'update']);
-
-
-
-
 });
 
 

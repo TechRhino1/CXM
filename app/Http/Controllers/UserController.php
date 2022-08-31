@@ -1,12 +1,9 @@
 <?php
 
-
-
 namespace App\Http\Controllers;
 
-
-
 use App\Models\User;
+
 use App\Models\Userhourlyrate;
 
 use Illuminate\Http\Request;
@@ -76,49 +73,26 @@ class UserController extends Controller
         }
     }
     // public function register(Request $request)
-
     // {
-
     //     try {
-
     //         $validator = validator()->make($request->all(), [
-
     //             'name' => 'required|string|max:255',
-
     //             'email' => 'required|string|email|max:255|unique:users',
-
     //             'password' => 'required|string|min:6',
-
-
-
     //         ]);
-
-
-
     //         if ($validator->fails()) {
-
     //             return response()->json(['error' => $validator->errors()], 401);
-
     //         }
     //         $user = User::create(array_merge(
-
     //             $validator->validated(),
-
     //             ['password' => bcrypt($request->password)]
-
     //         ));
     //         return $this->success([
-
     //             'user' => $user,
-
     //         ], 'Registration Successful', 200);
-
     //     } catch (\Throwable $e) {
-
     //         return $this->error($e->getMessage(), 500);
-
     //     }
-
     // }
 
     public function logout()
@@ -159,17 +133,16 @@ class UserController extends Controller
             $year = Request('year');
 
             $getuser = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')
-            ->wheremonth('users.created_at', $month)
-            ->whereyear('users.created_at', $year)
-            ->where('users.id', $userid)
-            ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')
-            ->get();
-            if($getuser->count() > 0){
-            return $this->success($getuser, 'A total of ' . $getuser->count() . 'Information(s) retrieved successfully');
-            }else{
+                    ->wheremonth('users.created_at', $month)
+                    ->whereyear('users.created_at', $year)
+                    ->where('users.id', $userid)
+                    ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')
+                    ->get();
+            if ($getuser->count() > 0) {
+                return $this->success($getuser, 'A total of ' . $getuser->count() . 'Information(s) retrieved successfully');
+            } else {
                 return $this->success($getuser, 'No Information retrieved');
             }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 500);
