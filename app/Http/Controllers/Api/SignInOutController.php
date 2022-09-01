@@ -385,10 +385,11 @@ class SignInOutController extends Controller
         //get details of all user in current day
 
         try {
-
-            $data = SignInOut::join('users', 'users.id', '=', 'sign_in_outs.user_id')
-                ->where('sign_in_outs.EVENTDATE', date('Y-m-d'))
-                ->Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins', 'sign_in_outs.EVENTDATE', 'sign_in_outs.TotalTaskMins', 'sign_in_outs.user_id')
+            $data = User::Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins', 'sign_in_outs.EVENTDATE', 'sign_in_outs.TotalTaskMins', 'sign_in_outs.user_id')
+                ->leftJoin("sign_in_outs", function ($join) {
+                    $join->on('sign_in_outs.user_id', '=', 'users.id')
+                        ->where('sign_in_outs.EVENTDATE', '=', date('Y-m-d'));
+                })
                 ->get();
 
             if ($data->count() > 0) {
@@ -425,35 +426,6 @@ class SignInOutController extends Controller
 
                 return $this->success($data, 'No Information(s) retrieved');
             }
-
-            // }else {
-
-            //     $data = [
-
-            //         'EVENTDATE' => $date,
-
-            //         'SIGNIN_TIME' => 'SIGNIN_TIME',
-
-            //          'SIGNOUT_TIME' => '00:00',
-
-            //          'TotalMins' => 'TotalMins',
-
-            //          'user_id' => $UserID,
-
-            //          'name' => 'name',
-
-            //          'tminsformated' => 'tminsformated',
-
-            //          'TotalTaskMins' => 'TotalTaskMins',
-
-            //          'ttaskminsformatted' => 'ttaskminsformatted',
-
-            //    ];
-
-            //     return $this->success($data ,' Information(s) retrieved' );
-
-            // }
-
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);
@@ -560,14 +532,12 @@ class SignInOutController extends Controller
 
             $year = request('year');
             // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
-
             $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.UserID')
                 ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
                 ->where('userhourlyrate.MONTHID', $month)
                 ->where('userhourlyrate.YEARID', $year)
                 ->get();
             //->orderBy('users.name', 'Desc')->get();
-
             foreach ($data as $usertype) {
                 $usertype->role = ($usertype->role == 0 ? 'Manager' : ($usertype->role == 1 ? 'Developer' : ($usertype->role == 2 ? 'Sales' : 'Clients')));
             }
