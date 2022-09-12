@@ -528,16 +528,40 @@ class SignInOutController extends Controller
 
         try {
 
-            $month = request('month');
 
-            $year = request('year');
             // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
-            $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.UserID')
-                ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
-                ->where('userhourlyrate.MONTHID', $month)
-                ->where('userhourlyrate.YEARID', $year)
+            $data = User::select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
+            ->leftJoin('userhourlyrate', function ($join) {
+                $join->on('users.id', '=', 'userhourlyrate.UserID')
+                    ->where('userhourlyrate.YEARID', '=', request('year'))
+                    ->where('userhourlyrate.MONTHID', '=',request('month'));
+            })
                 ->get();
             //->orderBy('users.name', 'Desc')->get();
+            foreach ($data as $usertype) {
+                $usertype->role = ($usertype->role == 0 ? 'Manager' : ($usertype->role == 1 ? 'Developer' : ($usertype->role == 2 ? 'Sales' : 'Clients')));
+            }
+
+
+            if ($data->count() > 0) {
+
+                return $this->success($data, 'A total of ' . $data->count() . ' Information(s) retrieved');
+            } else {
+
+                return $this->success($data, 'No Information(s) retrieved');
+            }
+        } catch (\Throwable $e) {
+
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getusers()
+    {
+        try {
+            $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.UserID')
+                ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
+                ->orderBy('users.name', 'Asc')
+                ->get();
             foreach ($data as $usertype) {
                 $usertype->role = ($usertype->role == 0 ? 'Manager' : ($usertype->role == 1 ? 'Developer' : ($usertype->role == 2 ? 'Sales' : 'Clients')));
             }

@@ -119,6 +119,8 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
     Route::get('/signinoutsdetails', [SignInOutController::class, 'getusersigndetails']); //get user detail of current day
 
     Route::post('/getcurrentsigninout', [SignInOutController::class, 'getcurrentsigninout']); //get user detail of user today with userid and date
+
+    Route::get('/getusers', [SignInOutController::class, 'getusers']); //get users detail
     // route to leave
 
     Route::post('/userleaves', [UserLeaveController::class, 'store']);
