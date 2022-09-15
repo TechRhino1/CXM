@@ -88,7 +88,7 @@ class ClientsController extends Controller
     {
         try {
             $clientid = $id;
-            $updateclient = Clients::where('id', $clientid)->update($request->all());
+            $updateclient = Clients::where('ID', $clientid)->update($request->all());
             return $this->success($updateclient, 'Client updated successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -105,7 +105,7 @@ class ClientsController extends Controller
     {
         try {
             $id = Request('id');
-            $deleteclient = Clients::where('id', $id)->delete();
+            $deleteclient = Clients::where('ID', $id)->delete();
             return $this->success($deleteclient, 'Client deleted successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

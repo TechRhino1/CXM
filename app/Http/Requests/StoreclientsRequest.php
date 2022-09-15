@@ -24,12 +24,12 @@ class StoreclientsRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email',
-            'phone' => 'required|string|max:255',
-            'comments' => 'required|string|max:255',
-            'staff_id' => 'required|integer',
-            'status' => 'required|integer|max:255',
+            'Name' => 'required|string|max:255',
+            'Email' => 'required|string|email',
+            'Phone' => 'required|string|max:255',
+            'Comments' => 'required|string|max:255',
+            'StaffID' => 'required|integer',
+            'Status' => 'required|integer|max:255',
         ];
 
     }

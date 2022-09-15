@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('userhourlyrates', function (Blueprint $table) {
-            $table->id();
+        Schema::create('userhourlyrate', function (Blueprint $table) {
+            $table->ID('ID');
             $table->string('UserID');
-            $table->string('HourlyRate');
+            $table->string('HourlyINR');
             $table->string('MonthID');
             $table->string('YearID');
             $table->string('Salary');
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('userhourlyrates');
+        Schema::dropIfExists('userhourlyrate');
     }
 };

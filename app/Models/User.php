@@ -19,9 +19,9 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'Name',
+        'Email',
+        'UserPwd',
         'role',
     ];
 
@@ -31,7 +31,8 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
+        'UserPwd',
+        'AccessCode',
         'remember_token',
     ];
 
@@ -47,6 +48,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->getKey();
     }
+    public function getAuthPassword(){
+        return $this->UserPwd;
+     }
 
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
@@ -57,14 +61,15 @@ class User extends Authenticatable implements JWTSubject
     {
        return [
         'role' => $this->role,
+        'sub' => $this->ID,
     ];
     }
 
     public static function getRole($email)
     {
-        $user = User::where('email', $email)->first();
+        $user = User::where('Email', $email)->first();
         return $user->role;
+
     }
-    
-   
+
 }

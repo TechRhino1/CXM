@@ -54,7 +54,7 @@ class UserLeaveController extends Controller
     public function store(StoreUserLeavesRequest $request)
     {
         try {
-            $UserID = auth()->user()->id;
+            $UserID = auth()->user()->ID;
 
             $userLeave = UserLeaves::create(
                 [
@@ -108,16 +108,31 @@ class UserLeaveController extends Controller
     {
         try {
             $userId = Request('UserID');
+            $userLeave = UserLeaves::where('ID', $id)->where('UserID', $userId);
+            //if ($userId ==  $userLeave->UserID) {
+                if ($userLeave->first())
+                 {
+                  // $userLeave->update($request->all());
+                  //dd($request->all());
+                    $userLeave->update(
+                        [
+                            'DateFrom' => $request->DateFrom,
+                            'DateTo' => $request->DateTo,
+                            'Reason' => $request->Reason,
+                            'ApprovalStatus' => $request->ApprovalStatus,
+                            'ApprovedUserID' => $request->ApprovedUserID,
+                            'ApprovedDate' => $request->ApprovedDate,
+                            'ApprovalComments' => $request->ApprovalComments,
 
-            $userLeave = UserLeaves::where('id', $id)->where('UserID', $userId)->first();
-            if ($userId ==  $userLeave->UserID) {
-                if ($userLeave->update($request->all())) {
-                    return $this->success($userLeave, 'User Leave Updated Successfully', 201);
+                        ]
+                    );
+                    return $this->success($userLeave, 'User Leave Updated Successfully', 200);
+                } else {
+                    return  $this->error('User Leave Not Found', 404);
                 }
-                return $this->error('User Leave not updated', 400);
-            } else {
-                return $this->error('You are not authorized to update this leave', 500);
-            }
+            // } else {
+            //     return $this->error('You are not authorized to update this leave', 500);
+            // }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -147,7 +162,13 @@ class UserLeaveController extends Controller
         try {
             if ($id !== null) {
 
-                $userLeaves = UserLeaves::join('users', 'users.id', '=', 'user_leaves.UserID')->where('user_leaves.UserID', $id)->Select('user_leaves.id', 'users.name', 'user_leaves.UserID', 'user_leaves.DateFrom', 'user_leaves.DateTo', 'user_leaves.Reason', 'user_leaves.ApprovalStatus', 'user_leaves.ApprovedUserID', 'user_leaves.ApprovedDate', 'user_leaves.ApprovalComments')->get();
+                //print_r($id);
+
+                $userLeaves = UserLeaves::join('users', 'users.ID', '=', 'userleaves.UserID')
+                ->where('userleaves.UserID', $id)
+                ->Select('userleaves.ID', 'users.Name', 'userleaves.UserID', 'userleaves.DateFrom', 'userleaves.DateTo', 'userleaves.Reason', 'userleaves.ApprovalStatus', 'userleaves.ApprovedUserID', 'userleaves.ApprovedDate', 'userleaves.ApprovalComments')
+                ->get();
+
                 foreach ($userLeaves as $userLeave) {
                     $userLeave->ApprovalStatus = ($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));
                 }
@@ -164,8 +185,8 @@ class UserLeaveController extends Controller
     public function getleavebyleaveid()
     {
         try {
-            $id = Request('id');
-            $userLeaves = UserLeaves::where('id', $id)
+            $id = Request('ID');
+            $userLeaves = UserLeaves::where('ID', $id)
                 ->get();
             //check leave status
             foreach ($userLeaves as $userLeave) {
@@ -184,9 +205,9 @@ class UserLeaveController extends Controller
     {
         try {
             $userLeaves = UserLeaves::where('ApprovalStatus', request('status'))
-                ->Select('user_leaves.*', 'users.name')
-                ->join('users', 'users.id', '=', 'user_leaves.UserID')
-                ->orderby('user_leaves.DateFrom', 'desc')
+                ->Select('userleaves.*', 'users.name')
+                ->join('users', 'users.ID', '=', 'userleaves.UserID')
+                ->orderby('userleaves.DateFrom', 'desc')
                 ->get();
             foreach ($userLeaves as $userLeave) {
                 $userLeave->ApprovalStatus = ($userLeave->ApprovalStatus == 0 ? 'Awaiting Approval' : ($userLeave->ApprovalStatus == 1 ? 'Approved' : 'Rejected'));

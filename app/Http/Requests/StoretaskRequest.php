@@ -26,7 +26,7 @@ class StoretaskRequest extends FormRequest
         try{
         return [
             'Title' => 'required|string|max:255',
-            'Description' => 'required|string|max:255',
+            'Description' => 'required|string',
             'ProjectID' => 'required|integer',
             //'CreaterID' => 'required|integer',
             'EstimatedDate' => 'required|date',

@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('userleaves', function (Blueprint $table) {
-            $table->id();
+            $table->ID('ID');
             $table->string('UserID');
             $table->date('DateFrom');
             $table->date('DateTo');
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_leaves');
+        Schema::dropIfExists('userleaves');
     }
 };

@@ -108,7 +108,7 @@ class ProjectController extends Controller
     public function update(Request $request, Projects $projects)
     {
         try {
-            $project = Projects::find($request->id);
+            $project = Projects::where('ID', $request->ID);
 
             if ($project->update($request->all())) {
                 return $this->success($project, 'Project updated successfully');
@@ -155,7 +155,7 @@ class ProjectController extends Controller
     {
         try {
             //$Userid = request('id');
-            $Userid = auth()->user()->id;
+            $Userid = auth()->user()->ID;
             DB::statement("SET SQL_MODE=''");
             $projects = Projects::where('UserID', $Userid)->groupBy('Description')->get();
             if ($projects->count() > 0) {
@@ -174,31 +174,38 @@ class ProjectController extends Controller
             $totalmins = 0;
             $totalmanmins = 0;
             $projectsarray = [];
-            $Userid = auth()->user()->id;
+            $Userid = auth()->user()->ID;
             $getprojectid = DB::table("tasks")->where("CURRENTLYASSIGNEDTOID", "=", $Userid)->distinct()->get(['PROJECTID']);
             DB::statement("SET SQL_MODE=''");
             $getprojectid  = $getprojectid->pluck('PROJECTID');
 
-            $projects = projects::select('projects.id', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments', 'projects.UserID')
+            $projects = projects::select('projects.ID', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments', 'projects.UserID')
                 //->leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
                 //->join('tasks', 'projects.id', '=', 'tasks.ProjectID')
                 // ->where('tasks.CreaterID',  $Userid)
                 //->where('projects.UserID', $Userid)
-                ->whereIn('projects.id', $getprojectid)
+                ->whereIn('projects.ID', $getprojectid)
                 ->groupBy('projects.Description')
                 // ->orderBy('projects.Description', 'asc')
                 ->get();
 
             foreach ($projects as $project) {
                 $taskdata = Tasks::select('EstimatedTime', 'CurrentlyAssignedToID')
-                    ->where('ProjectID', $project->id)->get();
+                    ->where('ProjectID', $project->ID)->get();
+
                 foreach ($taskdata as $task) {
                     $ET =  $task->EstimatedTime;
+                   // print_r($ET);
                     $CA =  $task->CurrentlyAssignedToID;
+                    //print_r($CA);
                     $data = str_replace(':', '.', $ET);
                     if (!(strpos($ET, '.') !== false)) $ET = $ET . '.0';
                     $d = explode(".", $data);
-                    $totalmins += $d[0] * 60 + $d[1];
+
+                    if (!isset($d[1])) {
+                        $d[1] = 0;
+                    }
+                    $totalmins += (int)$d[0] * 60 + $d[1];
 
 
                     if ($CA == $Userid) {
@@ -211,7 +218,7 @@ class ProjectController extends Controller
 
                 $pro = [
 
-                    'id' => $project->id,
+                    'id' => $project->ID,
 
                     'description' =>  $project->Description,
 
@@ -258,14 +265,14 @@ class ProjectController extends Controller
         try {
             $totalmins = 0;
             $totalmanmins = 0;
-            $Userid = auth()->user()->id;
-            $projects = Projects::select('projects.id', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments', 'projects.UserID')
+            $Userid = auth()->user()->ID;
+            $projects = Projects::select('projects.ID', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments', 'projects.UserID')
                 ->leftJoin('projectusers', function ($join) {
-                    $join->on('projects.id', '=', 'projectusers.project_id')
-                        ->where('projectusers.user_id', '=', 2);
+                    $join->on('projects.ID', '=', 'projectusers.ProjectID')
+                        ->where('projectusers.UserID', '=', 2);
                 })
                 ->where('projects.Status', 'i')
-                ->join('tasks', 'projects.id', '=', 'tasks.ProjectID')
+                ->join('tasks', 'projects.ID', '=', 'tasks.ProjectID')
                 //->groupBy('projects.Description')
                 ->orderBy('projects.Description', 'Desc')
                 ->get();
@@ -273,7 +280,7 @@ class ProjectController extends Controller
             foreach ($projects as $project) {
 
                 $taskdata = Tasks::select('EstimatedTime', 'CurrentlyAssignedToID')
-                    ->where('ProjectID', $project->id)->get();
+                    ->where('ProjectID', $project->ID)->get();
 
                 foreach ($taskdata as $task) {
                     $ET =  $task->EstimatedTime;
@@ -293,7 +300,7 @@ class ProjectController extends Controller
 
                 $pro = [
 
-                    'id' => $project->id,
+                    'id' => $project->ID,
 
                     'description' =>  $project->Description,
 
@@ -322,11 +329,13 @@ class ProjectController extends Controller
     public function getprojectbyid()
     {
         try {
-            $getprojectid = request('id');
-            $projects = Projects::join ('users', 'users.id', '=', 'projects.UserID')
-                ->where('projects.id', $getprojectid)
-                ->select('projects.*', 'users.name')
+            $getprojectid = request('ID');
+            $projects = Projects::leftjoin('users', 'users.ID', '=', 'projects.UserID')
+                ->where('projects.ID', $getprojectid)
+                ->select('projects.*', 'users.Name')
                 ->get();
+
+                //print_r($projects);
 
             if ($projects->count() > 0) {
                 return $this->success($projects,' Information(s) retrieved successfully');

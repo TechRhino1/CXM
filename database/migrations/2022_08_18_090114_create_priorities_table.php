@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('Priority', function (Blueprint $table) {
-            $table->id();
+            $table->ID('ID');
             $table->string('Description');
 
         });

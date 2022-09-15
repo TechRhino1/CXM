@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('signinout', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->ID('ID');
+            $table->unsignedBigInteger('USERID');
             $table->date('EVENTDATE');
             $table->time('SIGNIN_TIME')->default('00:00');
             $table->date('CREATEDSIGNIN_DATE');
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sign_in_outs');
+        Schema::dropIfExists('signinout');
     }
 };

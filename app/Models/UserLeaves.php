@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 class UserLeaves extends Model
 {
     use HasFactory;
+
+    protected $table = 'userleaves';
     protected $fillable = [
         'UserID',
         'DateFrom',
@@ -28,10 +30,10 @@ class UserLeaves extends Model
     {
         //join users table and get name
         $name = DB::table('users')
-            ->select('name')
-            ->where('id', $this->UserID)
+            ->select('Name')
+            ->where('ID', $this->UserID)
             ->get();
-        return $name->first()->name;
+        return $name->first()->Name;
     }
 
 

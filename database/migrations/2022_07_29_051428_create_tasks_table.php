@@ -14,11 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
+            $table->ID('ID');
             $table->string('Title');
             $table->longText('Description');
             $table->string('ProjectID');
             $table->string('CreaterID');
+            $table->string('CreatedDateTime');
             $table->string('EstimatedDate');
             $table->string('EstimatedTime');
             $table->string('Priority');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Authenticate;
 use App\Models\User;
 
 use App\Models\Userhourlyrate;
@@ -37,7 +38,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('Email', $request->email)->first();
 
             $validator = validator()->make($request->all(), [
 
@@ -46,17 +47,21 @@ class UserController extends Controller
                 'password' => 'required|min:6'
 
             ]);
-            if ($validator->fails()) {
+            $check = User::where('email', $request->email)->where('UserPwd', $request->password)->first();
 
+            if ($validator->fails()) {
                 return $this->error($validator->errors(), 401);
             }
-            if (!$token = auth('api')->attempt($validator->validated())) {
+           if ($check == null) {
+                return $this->error('Email or password is incorrect', 401);
+            }
 
+            if (!$token = (auth()->login($check)  )) {
                 return $this->error('Unauthorized', 401);
+
             } else {
 
-                // $user = FacadesAuth::user();
-
+                //$user = FacadesAuth::user();
                 return $this->success([
 
                     'user' => $user,
@@ -126,18 +131,18 @@ class UserController extends Controller
     {
         try {
 
-            $userid =  Request('id');
+            $userid =  Request('ID');
 
             // $month = Request('month');
 
             // $year = Request('year');
 
-            $getuser = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.USERID')
-                    // ->wheremonth('users.created_at', $month)
-                    // ->whereyear('users.created_at', $year)
-                    ->where('users.id', $userid)
-                    ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')
-                    ->get();
+            $getuser = User::LEFTJOIN('userhourlyrate', 'users.ID', '=', 'userhourlyrate.USERID')
+                // ->wheremonth('users.created_at', $month)
+                // ->whereyear('users.created_at', $year)
+                ->where('users.ID', $userid)
+                ->select('users.*', 'userhourlyrate.HourlyINR', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead')
+                ->get();
             if ($getuser->count() > 0) {
                 return $this->success($getuser, 'User Information(s) retrieved successfully');
             } else {

@@ -45,7 +45,7 @@ return [
             'provider' => 'admin',
             'hash' => false,
         ],
-    
+
         'api' => [
             'driver' => 'jwt',
             'provider' => 'users',
@@ -53,7 +53,7 @@ return [
         ],
 
 
-      
+
     ],
 
     /*

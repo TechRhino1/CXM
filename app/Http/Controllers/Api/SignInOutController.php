@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponser;
 
 use Illuminate\Console\View\Components\Alert;
-
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Hash;
 
 class SignInOutController extends Controller
@@ -48,7 +48,9 @@ class SignInOutController extends Controller
             $month = Request('month');
             $year = Request('year');
 
-            $signInOuts = SignInOut::whereMonth('created_at', $month)->whereYear('created_at', $year)->get();
+            $signInOuts = SignInOut::whereMonth('created_at', $month)->whereYear('created_at', $year)
+            ->orderby('EVENTDATE', 'desc')
+            ->get();
 
             $count = $signInOuts->count();
 
@@ -96,9 +98,9 @@ class SignInOutController extends Controller
 
         try {
 
-            $UserID = auth()->user()->id;
+            $UserID = auth()->user()->ID;
 
-            $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
+            $data = SignInOut::where('USERID', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
 
 
 
@@ -111,7 +113,7 @@ class SignInOutController extends Controller
 
                     [
 
-                        'user_id' => $UserID,
+                        'USERID' => $UserID,
 
                         'EVENTDATE' => date('Y-m-d'),
 
@@ -213,9 +215,9 @@ class SignInOutController extends Controller
 
 
 
-                $UserID = auth()->user()->id;
+                $UserID = auth()->user()->ID;
 
-                $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
+                $data = SignInOut::where('USERID', $UserID)->where('EVENTDATE', date('Y-m-d'))->get();
 
                 if ($data->count() <= 0) {
 
@@ -234,7 +236,7 @@ class SignInOutController extends Controller
 
                     $TotalMins = (strtotime($SIGNOUT_TIME) - strtotime($SIGNIN_TIME)) / 60;
 
-                    $signInOut = SignInOut::where('user_id', $UserID)->where('EVENTDATE', date('Y-m-d'))->update(
+                    $signInOut = SignInOut::where('USERID', $UserID)->where('EVENTDATE', date('Y-m-d'))->update(
 
                         [
 
@@ -281,13 +283,13 @@ class SignInOutController extends Controller
                 }
             } elseif (auth()->user()->role == '0') { //only admin can update sign in out
 
-                $UserID = $request->user_id;
+                $UserID = $request->USERID;
 
                 $signInOut->update(
 
                     [
 
-                        'user_id' => $UserID,
+                        'USERID' => $UserID,
 
                         'EVENTDATE' => date('Y-m-d'),
 
@@ -361,7 +363,9 @@ class SignInOutController extends Controller
 
             $UserID = request('user');
 
-            $data = SignInOut::where('user_id', $UserID)->whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)->get();
+            $data = SignInOut::where('USERID', $UserID)->whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)
+            ->orderBy('EVENTDATE', 'DESC')
+            ->get();
 
             if ($data->count() > 0) {
 
@@ -385,10 +389,10 @@ class SignInOutController extends Controller
         //get details of all user in current day
 
         try {
-            $data = User::Select('users.name', 'sign_in_outs.SIGNIN_TIME', 'sign_in_outs.SIGNOUT_TIME', 'sign_in_outs.TotalMins', 'sign_in_outs.EVENTDATE', 'sign_in_outs.TotalTaskMins', 'sign_in_outs.user_id')
-                ->leftJoin("sign_in_outs", function ($join) {
-                    $join->on('sign_in_outs.user_id', '=', 'users.id')
-                        ->where('sign_in_outs.EVENTDATE', '=', date('Y-m-d'));
+            $data = User::Select('users.name', 'signinout.SIGNIN_TIME', 'signinout.SIGNOUT_TIME', 'signinout.TotalMins', 'signinout.EVENTDATE', 'signinout.TotalTaskMins', 'signinout.USERID')
+                ->leftJoin("signinout", function ($join) {
+                    $join->on('signinout.USERID', '=', 'users.ID')
+                        ->where('signinout.EVENTDATE', '=', date('Y-m-d'));
                 })
                 ->get();
 
@@ -413,11 +417,13 @@ class SignInOutController extends Controller
 
         try {
 
-            $UserID = auth()->user()->id;
+            $UserID = auth()->user()->ID;
 
             $date = Request('date');
 
-            $data = SignInOut::where('user_id', $UserID)->where('EVENTDATE', $date)->get();
+            $data = SignInOut::where('USERID', $UserID)->where('EVENTDATE', $date)
+            ->orderby('EVENTDATE', 'desc')
+            ->get();
 
             if ($data->count() > 0) {
 
@@ -442,11 +448,11 @@ class SignInOutController extends Controller
 
             $validator = validator()->make($request->all(), [
 
-                'name' => 'required|string|max:255',
+                'Name' => 'required|string|max:255',
 
-                'email' => 'required|string|email|max:255|unique:users',
+                'Email' => 'required|string|email|max:255|unique:users',
 
-                'password' => 'required|string|min:6',
+                'UserPwd' => 'required|string|min:6',
 
                 'role' => 'required',
 
@@ -461,11 +467,13 @@ class SignInOutController extends Controller
 
                 $validator->validated(),
 
-                ['password' => bcrypt($request->password)]
+                //['UserPwd' => $request->UserPwd]
+
+                ['UserPwd' => bcrypt($request->password)]
 
             ));
 
-            $_hourlyinr = request('HourlyRate');
+            $_hourlyinr = request('HourlyINR');
 
             $_hourlyoverhead = request('OverHead');
 
@@ -477,9 +485,11 @@ class SignInOutController extends Controller
 
             $_salary = request('Salary');
 
+            $getuserid = User::where('Email', $request->Email)->first();
+
             //SELECT ID FROM userhourlyrate WHERE USERID=$SQL_ID AND MONTHID=$_monthid AND YEARID=$_yearid
 
-            $GETuserhourly = Userhourlyrate::where('UserID', $user->id)->where('MonthID', $_monthid)->where('YearID', $_yearid)->first();
+            $GETuserhourly = Userhourlyrate::where('UserID',  $getuserid->ID)->where('MonthID', $_monthid)->where('YearID', $_yearid)->first();
 
             $userhourlyrateid = 0;
 
@@ -491,22 +501,22 @@ class SignInOutController extends Controller
 
                     $validator->validated(),
 
-                    ['UserID' => $user->id, 'HourlyRate' => $_hourlyinr, 'MonthID' => $_monthid, 'YearID' => $_yearid, 'Salary' => $_salary, 'OverHead' => $_hourlyoverhead]
+                    ['UserID' => $getuserid->ID, 'HourlyINR' => $_hourlyinr, 'MonthID' => $_monthid, 'YearID' => $_yearid, 'Salary' => $_salary, 'OverHead' => $_hourlyoverhead]
 
                 ));
 
                 return $this->success($insertuserhourly, 'Registration Successful');
             } else {
 
-                $userhourlyrateid = $GETuserhourly->id;
+                $userhourlyrateid = $GETuserhourly->ID;
 
                 //UPDATE userhourlyrate set HOURLYINR=$_hourlyinr, MONTHID=$_monthid, YEARID=$_yearid, SALARY=$_salary, OVERHEAD=$_hourlyoverhead WHERE ID=$userhourlyrateid
 
-                $updateuserhourly = UserHourlyRate::where('id', $userhourlyrateid)->update(array_merge(
+                $updateuserhourly = UserHourlyRate::where('ID', $userhourlyrateid)->update(array_merge(
 
                     $validator->validated(),
 
-                    ['HOURLYINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
+                    ['HourlyINR' => $_hourlyinr, 'MONTHID' => $_monthid, 'YEARID' => $_yearid, 'SALARY' => $_salary, 'OVERHEAD' => $_hourlyoverhead]
 
                 ));
                 return $this->success($updateuserhourly, 'User / Rates updated successfully.');
@@ -523,21 +533,17 @@ class SignInOutController extends Controller
     }
 
     public function getusersdata()
-
     {
-
         try {
-
-
             // SELECT u.NAME, u.ID, u.USERTYPE, u.EMAIL, IFNULL(uh.HOURLYINR,0) as HOURLYINR, IFNULL(uh.MONTHID,0) as MONTHID, IFNULL(uh.YEARID,0) as YEARID, IFNULL(uh.SALARY,0) as SALARY, IFNULL(uh.OVERHEAD,0) as OVERHEAD FROM users u LEFT JOIN userhourlyrate uh ON (u.ID = uh.USERID AND uh.MONTHID=$_month AND uh.YEARID=$_year) ORDER BY u.NAME
-            $data = User::select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
-            ->leftJoin('userhourlyrate', function ($join) {
-                $join->on('users.id', '=', 'userhourlyrate.UserID')
-                    ->where('userhourlyrate.YEARID', '=', request('year'))
-                    ->where('userhourlyrate.MONTHID', '=',request('month'));
-            })
-                ->get();
-            //->orderBy('users.name', 'Desc')->get();
+            $data = User::select('users.*', 'userhourlyrate.HourlyINR', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
+                ->leftJoin('userhourlyrate', function ($join) {
+                    $join->on('users.ID', '=', 'userhourlyrate.UserID')
+                        ->where('userhourlyrate.YEARID', '=', request('year'))
+                        ->where('userhourlyrate.MONTHID', '=', request('month'));
+                })
+                ->OrderBy('users.Name')->get();
+
             foreach ($data as $usertype) {
                 $usertype->role = ($usertype->role == 0 ? 'Manager' : ($usertype->role == 1 ? 'Developer' : ($usertype->role == 2 ? 'Sales' : 'Clients')));
             }
@@ -558,9 +564,9 @@ class SignInOutController extends Controller
     public function getusers()
     {
         try {
-            $data = User::LEFTJOIN('userhourlyrate', 'users.id', '=', 'userhourlyrate.UserID')
-                ->select('users.*', 'userhourlyrate.HourlyRate', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
-                ->orderBy('users.name', 'Asc')
+            $data = User::LEFTJOIN('userhourlyrate', 'users.ID', '=', 'userhourlyrate.UserID')
+                ->select('users.*', 'userhourlyrate.HourlyINR', 'userhourlyrate.MonthID', 'userhourlyrate.YearID', 'userhourlyrate.Salary', 'userhourlyrate.OverHead', 'userhourlyrate.UserID')
+                ->orderBy('users.Name', 'Asc')
                 ->get();
             foreach ($data as $usertype) {
                 $usertype->role = ($usertype->role == 0 ? 'Manager' : ($usertype->role == 1 ? 'Developer' : ($usertype->role == 2 ? 'Sales' : 'Clients')));
@@ -574,6 +580,49 @@ class SignInOutController extends Controller
 
                 return $this->success($data, 'No Information(s) retrieved');
             }
+        } catch (\Throwable $e) {
+
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function updateuser(Request $request)
+    {
+        try{
+            $validator = validator()->make($request->all(), [
+                'ID' => 'required',
+                'Name' => 'required',
+                'Email' => 'required',
+                'role' => 'required',
+                'HourlyINR' => 'required',
+                'MonthID' => 'required',
+                'Salary' => 'required',
+                'OverHead' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return $this->error($validator->errors()->first(), 400);
+            }
+        $update = User::where('ID', $request->ID)
+            ->update([
+                'Name' => $request->Name,
+                'Email' => $request->Email,
+                'role' => $request->role,
+            ]);
+            if($request->UserPwd != null){
+                $update = User::where('ID', $request->ID)
+                ->update([
+                    'UserPwd' =>$request->UserPwd,
+                ]);
+            }
+        $update = UserHourlyRate::where('UserID', $request->ID)
+            ->update([
+                'HourlyINR' => $request->HourlyINR,
+                'MonthID' => $request->MonthID,
+                'YearID' => $request->YearID,
+                'Salary' => $request->Salary,
+                'OverHead' => $request->OverHead,
+            ]);
+        return $this->success($update, 'User updated successfully.');
+
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);

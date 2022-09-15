@@ -10,8 +10,10 @@ class SignInOut extends Model
 {
     use HasFactory;
 
+    protected $table = 'signinout';
+
     protected $fillable = [
-        'user_id',
+        'USERID',
         'EVENTDATE',
         'SIGNIN_TIME',
         'CREATEDSIGNIN_DATE',
@@ -34,8 +36,8 @@ class SignInOut extends Model
     {
 
         $snout= DB::table('sign_in_outs')
-            ->join('users', 'sign_in_outs.UserID', '=', 'users.id')
-            ->select('sign_in_outs.id', 'sign_in_outs.UserID', 'sign_in_outs.Date', 'sign_in_outs.Time', 'sign_in_outs.SignIn', 'sign_in_outs.SignOut', 'users.name')
+            ->join('users', 'sign_in_outs.UserID', '=', 'users.ID')
+            ->select('sign_in_outs.ID', 'sign_in_outs.UserID', 'sign_in_outs.Date', 'sign_in_outs.Time', 'sign_in_outs.SignIn', 'sign_in_outs.SignOut', 'users.name')
             ->get();
         return $snout;
     }
@@ -55,10 +57,10 @@ class SignInOut extends Model
     {
         //join users table and get name
         $name = DB::table('users')
-            ->select('name')
-            ->where('id', $this->user_id)
+            ->select('Name')
+            ->where('ID', $this->USERID)
             ->get();
-        return $name->first()->name;
+        return $name->first()->Name;
     }
     // public function getTotalminsAttribute()
     // {

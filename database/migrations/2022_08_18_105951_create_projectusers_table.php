@@ -14,9 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('projectusers', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('project_id');
-            $table->unsignedBigInteger('user_id');
+            $table->ID('ID');
+            $table->unsignedBigInteger('ProjectID');
+            $table->unsignedBigInteger('UserID');
             $table->timestamps();
         });
     }

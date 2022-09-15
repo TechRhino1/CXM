@@ -48,6 +48,8 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/register', [SignInOutController::class, 'register']);
 
+    Route::post('/updateuser', [SignInOutController::class, 'updateuser']);
+
     //route to Projects
 
     Route::post('/projects', [ProjectController::class, 'store']);

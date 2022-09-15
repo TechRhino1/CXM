@@ -16,5 +16,5 @@ class Controller extends BaseController
         \config()->set('auth.defaults.guard', 'api');
     }
 
-    
+
 }
