@@ -44,7 +44,7 @@ class UserController extends Controller
 
                 'email' => 'required|email',
 
-                'password' => 'required|min:6'
+                'password' => 'required',
 
             ]);
             $check = User::where('email', $request->email)->where('UserPwd', $request->password)->first();

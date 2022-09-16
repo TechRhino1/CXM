@@ -180,10 +180,6 @@ class ProjectController extends Controller
             $getprojectid  = $getprojectid->pluck('PROJECTID');
 
             $projects = projects::select('projects.ID', 'projects.Description', 'projects.TotalHours', 'projects.InternalComments', 'projects.UserID')
-                //->leftjoin('projectusers', 'projects.id', '=', 'projectusers.project_id')
-                //->join('tasks', 'projects.id', '=', 'tasks.ProjectID')
-                // ->where('tasks.CreaterID',  $Userid)
-                //->where('projects.UserID', $Userid)
                 ->whereIn('projects.ID', $getprojectid)
                 ->groupBy('projects.Description')
                 // ->orderBy('projects.Description', 'asc')
@@ -195,7 +191,7 @@ class ProjectController extends Controller
 
                 foreach ($taskdata as $task) {
                     $ET =  $task->EstimatedTime;
-                   // print_r($ET);
+                    // print_r($ET);
                     $CA =  $task->CurrentlyAssignedToID;
                     //print_r($CA);
                     $data = str_replace(':', '.', $ET);
@@ -205,16 +201,26 @@ class ProjectController extends Controller
                     if (!isset($d[1])) {
                         $d[1] = 0;
                     }
-                    $totalmins += (int)$d[0] * 60 + $d[1];
+                    $totalmins += (int)$d[0] * 60 + (int)$d[1];
 
 
                     if ($CA == $Userid) {
 
-                        $totalmanmins = $totalmanmins + ($d[0] * 60 + $d[1]);
+                        $totalmanmins = $totalmanmins + ((int)$d[0] * 60 + (int)$d[1]);
                         // $totalmins = $totalmins + $totalmanmins;
                     }
                 }
                 // $totalmins = gmdate('i:s', $totalmins);
+                //         if (!isset($data[1])) {
+                //             $data[1] = 0;
+                //         }
+                // $hours  = $data[0];
+                // $mins   = $data[1];
+                // $totalmins += (int)$hours * 60 + $mins;
+                // if ($CA == $Userid) {
+                // $totalmanmins += $hours * 60 + $mins;
+                // }
+
 
                 $pro = [
 
@@ -224,9 +230,9 @@ class ProjectController extends Controller
 
                     'userid' => $project->UserID,
 
-                    'totalworkhours' => date("i:s", ($totalmins)),
+                    'totalworkhours' => floor($totalmins / 60) . ':' . ($totalmins % 60),
 
-                    'totaluserworkhours' => date("i:s", ($totalmanmins)),
+                    'totaluserworkhours' =>gmdate('i:s', $totalmanmins),
 
                     'totalhours' => $project->TotalHours,
 
@@ -294,7 +300,6 @@ class ProjectController extends Controller
                     if ($CA == $Userid) {
 
                         $totalmanmins = $totalmanmins + ($d[0] * 60 + $d[1]);
-
                     }
                 }
 
@@ -335,15 +340,15 @@ class ProjectController extends Controller
                 ->select('projects.*', 'users.Name')
                 ->get();
 
-                //print_r($projects);
+            //print_r($projects);
 
             if ($projects->count() > 0) {
-                return $this->success($projects,' Information(s) retrieved successfully');
+                return $this->success($projects, ' Information(s) retrieved successfully');
             } else {
                 return $this->success($projects, 'No Projects found');
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
-}
+    }
 }

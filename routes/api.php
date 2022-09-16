@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\SignInOutController;
 
 use App\Http\Controllers\Api\ClientsController;
 
+use App\Http\Controllers\Api\CompaniesController;
+
 use App\Http\Controllers\UserController;
 
 use App\Http\Controllers\Api\StatusController;
@@ -75,6 +77,18 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/clients_delete', [ClientsController::class, 'destroy']);
 
     Route::post('/clients_update/{id}', [ClientsController::class, 'update']);
+
+    // route to companies
+
+    Route::get('/companies', [CompaniesController::class, 'index']);
+
+    Route::post('/addcompanies', [CompaniesController::class, 'store']);
+
+    Route::post('/companies_delete', [CompaniesController::class, 'destroy']);
+
+    Route::post('/companies_update/{id}', [CompaniesController::class, 'update']);
+
+
 });
 
 

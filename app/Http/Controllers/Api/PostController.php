@@ -96,8 +96,7 @@ class PostController extends Controller
             $d = explode(".", $data);
 
             $totalmanmins += $d[0] * 60 + $d[1];
-            //get TotalTaskMins of user today
-            //check if user role is admin
+
             $user = auth()->user();
             $role = $user->role;
             if ($role == '1') {
@@ -145,7 +144,7 @@ class PostController extends Controller
     {
         try {
             $totalmanmins = 0;
-             $tasks = Tasks::where('ID', $request->ID);
+            $tasks = Tasks::where('ID', $request->ID);
             $tasks->update([
                 'Title' => $request->Title,
                 'Description' => $request->Description,
@@ -159,21 +158,27 @@ class PostController extends Controller
                 'updated_at' => date('Y-m-d'),
             ]);
 
-            if ( $tasks)
-             {
+            if ($tasks) {
 
-                //UPDATE TotalTaskMins in signinout table
                 $user_id = auth()->user()->ID;
-                $tasks = $request->EstimatedTime;
-                $tasks = str_replace(':', '.', $tasks);
+                $tasktime = Tasks::where('CreaterID', $user_id)
+                    ->where('EstimatedDate', $request->EstimatedDate)
+                    ->Select('EstimatedTime')
+                    ->get();
+                if ($tasktime->count() > 0) {
+                    foreach ($tasktime as $time) {
+                        $data = $time->EstimatedTime;
+                        $data = str_replace(':', '.', $data);
 
-                if (!(strpos($tasks, '.') !== false)) $tasks = $tasks . '.0';
+                        if (!(strpos($data, '.') !== false)) $data = $data . '.0';
 
-                $d = explode(".", $tasks);
+                        $d = explode(".", $data);
 
-                $totalmanmins += $d[0] * 60 + $d[1];
+                        $totalmanmins += $d[0] * 60 + $d[1];
+                    }
 
-                signinout::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]); //need fix
+                }
+                signinout::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
 
                 return $this->success(message: 'Task updated successfully');
             }
