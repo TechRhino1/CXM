@@ -23,7 +23,7 @@ class ProjectController extends Controller
     public function index()
     {
         try {
-            $projects = Projects::all();
+            $projects = Projects::orderBy('projects.Description', 'asc')->get();
             if ($projects->count() > 0) {
                 return $this->success($projects, message: ' A total of ' . $projects->count() . ' Project(s) retrieved');
             } else {

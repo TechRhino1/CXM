@@ -19,7 +19,17 @@ class ClientsController extends Controller
     {
         try {
 
-            $clients = Clients::all();
+            $clients = Clients::all([
+                'id',
+                'companies_id',
+                'name',
+                'email',
+                'phone',
+                'leads_id',
+                'comments',
+                'staffID',
+                'status',
+            ]);
 
             return $this->success($clients, 'A total of ' . $clients->count() . ' Client(s) retrieved', 200);
 
@@ -47,8 +57,16 @@ class ClientsController extends Controller
     public function store(Request $request)
     {
         try {
-            $data = $request->all();
-            $addclient = Clients::create($data);
+            $addclient = Clients::create([
+                'Companies_id' => $request->Companies_id,
+                'Name' => $request->name,
+                'Email' => $request->email,
+                'Phone' => $request->phone,
+                'leads_id' => $request->leads_id,
+                'Comments' => $request->comments,
+                'StaffID' => $request->staffID,
+                'Status' => $request->status,
+            ]);
             return $this->success($addclient, 'New Client created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -88,7 +106,16 @@ class ClientsController extends Controller
     {
         try {
             $clientid = $id;
-            $updateclient = Clients::where('ID', $clientid)->update($request->all());
+            $updateclient = Clients::where('ID', $clientid)->update([
+                'Companies_id' => $request->Companies_id,
+                'Name' => $request->name,
+                'Email' => $request->email,
+                'Phone' => $request->phone,
+                'leads_id' => $request->leads_id,
+                'Comments' => $request->comments,
+                'StaffID' => $request->staffID,
+                'Status' => $request->status,
+            ]);
             return $this->success($updateclient, 'Client updated successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -111,4 +138,50 @@ class ClientsController extends Controller
             return $this->error($e->getMessage(), 500);
         }
     }
+    //get client filter by status of client 0 or 1
+    public function getclientbystatus(Clients $clients)
+    {
+        try {
+
+            $status = Request('status');
+            $client = Clients::where('Status', $status)->get([
+                'id',
+                'companies_id',
+                'name',
+                'email',
+                'phone',
+                'leads_id',
+                'comments',
+                'staffID',
+                'status',
+            ]);
+            return $this->success($client, 'A total of ' . $client->count() . ' Client(s) retrieved', 200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+    //get client by id
+    public function getclientbyid(Clients $clients)
+    {
+        try {
+
+            $id = Request('id');
+            $client = Clients::where('ID', $id)->get([
+                'id',
+                'companies_id',
+                'name',
+                'email',
+                'phone',
+                'leads_id',
+                'comments',
+                'staffID',
+                'status',
+            ]);
+            return $this->success($client, 'A total of ' . $client->count() . ' Client(s) retrieved', 200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
 }

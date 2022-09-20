@@ -394,6 +394,7 @@ class SignInOutController extends Controller
                     $join->on('signinout.USERID', '=', 'users.ID')
                         ->where('signinout.EVENTDATE', '=', date('Y-m-d'));
                 })
+                //->OrderBy('signinout.SIGNIN_TIME', 'ASC')
                 ->get();
 
             if ($data->count() > 0) {
@@ -469,7 +470,7 @@ class SignInOutController extends Controller
 
                 //['UserPwd' => $request->UserPwd]
 
-                ['UserPwd' => bcrypt($request->password)]
+                ['UserPwd' => $request->UserPwd]
 
             ));
 

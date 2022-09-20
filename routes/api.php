@@ -20,7 +20,11 @@ use App\Http\Controllers\Api\ClientsController;
 
 use App\Http\Controllers\Api\CompaniesController;
 
+use App\Http\Controllers\Api\InvoicesController;
+
 use App\Http\Controllers\UserController;
+
+use App\Http\Controllers\Api\LeadController;
 
 use App\Http\Controllers\Api\StatusController;
 
@@ -78,6 +82,10 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/clients_update/{id}', [ClientsController::class, 'update']);
 
+    Route::post('/getclientstatus', [ClientsController::class, 'getclientbystatus']);
+
+    Route::post('/getclientbyid', [ClientsController::class, 'getclientbyid']);
+
     // route to companies
 
     Route::get('/companies', [CompaniesController::class, 'index']);
@@ -87,6 +95,24 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/companies_delete', [CompaniesController::class, 'destroy']);
 
     Route::post('/companies_update/{id}', [CompaniesController::class, 'update']);
+
+    Route::post('/getCompanyDetails', [CompaniesController::class, 'getCompanyDetails']);
+
+    Route::post('/getCompanyDetailsbyid', [CompaniesController::class, 'getCompanyById']);
+
+    //route to invoice
+
+    Route::get('/invoices', [InvoicesController::class, 'index']);
+
+    Route::post('/addinvoices', [InvoicesController::class, 'store']);
+
+    Route::post('/invoices_delete', [InvoicesController::class, 'destroy']);
+
+    Route::post('/invoices_update/{id}', [InvoicesController::class, 'update']);
+
+    //route to leads
+
+    Route::post('/leads', [LeadController::class, 'store']);
 
 
 });

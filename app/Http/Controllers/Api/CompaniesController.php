@@ -45,10 +45,9 @@ class CompaniesController extends Controller
     public function store(CompanyRequest $request)
     {
        try{
-        $logo = $request->file('logo');
-        $logo_name = time() . '.' . $logo->getClientOriginalExtension();
+           $logo = $request->file('logo');
+           $logo_name = rand().'.'.$logo->getClientOriginalExtension();
         $logo->move(public_path('/images'), $logo_name);
-
         $company = companies::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -158,4 +157,29 @@ class CompaniesController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
+    public function getCompanyDetails(Request $request){
+        try{
+            $month = $request->month;
+            $year = $request->year;
+            $company = companies::whereMonth('created_at', $month)->whereYear('created_at', $year)->get();
+            return $this->success($company, 'Company details retrieved successfully', 201);
+
+        }
+        catch(\Throwable $e){
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getCompanyById(Request $request){
+        try{
+            $id = $request->id;
+            $company = companies::where('id', $id)->get();
+            return $this->success($company, 'Company details retrieved successfully', 201);
+
+        }
+        catch(\Throwable $e){
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+
 }
