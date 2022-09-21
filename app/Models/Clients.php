@@ -11,10 +11,12 @@ class Clients extends Model
 
     protected $table = 'clients';
     protected $fillable = [
+        'Companies_id',
         'Name',
         'Email',
         'Phone',
         'Comments',
+        'address',
         'StaffID',
         'Status',
     ];

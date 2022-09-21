@@ -19,6 +19,11 @@ class CompaniesController extends Controller
     {
     try{
         $companies = companies::all();
+        //get logo path from storage_path('app/public/image') and add it to the companies array
+        $companies->map(function($company){
+            $company->logo = url("public/images/$company->logo");
+            return $company;
+        });
         return $this->success($companies, 'A total of ' . $companies->count() . ' Company(s) retrieved', 200);
     }
     catch(\Throwable $e){
@@ -46,7 +51,7 @@ class CompaniesController extends Controller
     {
        try{
            $logo = $request->file('logo');
-           $logo_name = rand().'.'.$logo->getClientOriginalExtension();
+           $logo_name = time() . '.' . $logo->getClientOriginalExtension();
         $logo->move(public_path('/images'), $logo_name);
         $company = companies::create([
             'name' => $request->name,
@@ -111,7 +116,6 @@ class CompaniesController extends Controller
             $logo = $request->file('logo');
             $logo_name = time() . '.' . $logo->getClientOriginalExtension();
             $logo->move(public_path('/images'), $logo_name);
-
             $company = companies::where('id', $ID)->update([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -162,6 +166,10 @@ class CompaniesController extends Controller
             $month = $request->month;
             $year = $request->year;
             $company = companies::whereMonth('created_at', $month)->whereYear('created_at', $year)->get();
+            $company->map(function($company){
+                $company->logo = url("public/images/$company->logo");
+                return $company;
+            });
             return $this->success($company, 'Company details retrieved successfully', 201);
 
         }
@@ -174,6 +182,10 @@ class CompaniesController extends Controller
         try{
             $id = $request->id;
             $company = companies::where('id', $id)->get();
+            $company->map(function($company){
+                $company->logo = url("public/images/$company->logo");
+                return $company;
+            });
             return $this->success($company, 'Company details retrieved successfully', 201);
 
         }

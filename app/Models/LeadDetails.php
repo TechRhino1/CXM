@@ -9,7 +9,7 @@ class LeadDetails extends Model
 {
     use HasFactory;
 
-    protected $table = 'leads_details';
+    protected $table = 'lead_details';
 
     protected $fillable = [
         'leads_id',

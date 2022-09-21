@@ -269,4 +269,16 @@ class PostController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
+    //get all tasks
+    public function getalltask()
+    {
+        try {
+            $tasks = Tasks::join('users', 'tasks.CreaterID', '=', 'users.ID')
+               ->select('tasks.*')
+                ->get();
+            return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
 }

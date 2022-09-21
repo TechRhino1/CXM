@@ -26,8 +26,9 @@ class ClientsController extends Controller
                 'email',
                 'phone',
                 'leads_id',
+                'address',
                 'comments',
-                'staffID',
+                'staffid',
                 'status',
             ]);
 
@@ -57,15 +58,17 @@ class ClientsController extends Controller
     public function store(Request $request)
     {
         try {
+
             $addclient = Clients::create([
-                'Companies_id' => $request->Companies_id,
                 'Name' => $request->name,
                 'Email' => $request->email,
                 'Phone' => $request->phone,
                 'leads_id' => $request->leads_id,
+                'address' => $request->address,
                 'Comments' => $request->comments,
-                'StaffID' => $request->staffID,
+                'StaffID' => $request->staffid,
                 'Status' => $request->status,
+                'Companies_id' => $request->companies_id,
             ]);
             return $this->success($addclient, 'New Client created successfully');
         } catch (\Throwable $e) {
@@ -107,13 +110,14 @@ class ClientsController extends Controller
         try {
             $clientid = $id;
             $updateclient = Clients::where('ID', $clientid)->update([
-                'Companies_id' => $request->Companies_id,
+                'Companies_id' => $request->companies_id,
                 'Name' => $request->name,
                 'Email' => $request->email,
                 'Phone' => $request->phone,
                 'leads_id' => $request->leads_id,
+                'address' => $request->address,
                 'Comments' => $request->comments,
-                'StaffID' => $request->staffID,
+                'StaffID' => $request->staffid,
                 'Status' => $request->status,
             ]);
             return $this->success($updateclient, 'Client updated successfully');
@@ -151,8 +155,9 @@ class ClientsController extends Controller
                 'email',
                 'phone',
                 'leads_id',
+                'address',
                 'comments',
-                'staffID',
+                'staffid',
                 'status',
             ]);
             return $this->success($client, 'A total of ' . $client->count() . ' Client(s) retrieved', 200);
@@ -174,8 +179,9 @@ class ClientsController extends Controller
                 'email',
                 'phone',
                 'leads_id',
+                'address',
                 'comments',
-                'staffID',
+                'staffid',
                 'status',
             ]);
             return $this->success($client, 'A total of ' . $client->count() . ' Client(s) retrieved', 200);

@@ -110,9 +110,23 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/invoices_update/{id}', [InvoicesController::class, 'update']);
 
+    Route::post('/getInvoiceDetails', [InvoicesController::class, 'getInvoiceByMonthYear']);
+
+    Route::post('/getInvoiceDetailsbyid', [InvoicesController::class, 'getInvoiceById']);
+
     //route to leads
 
-    Route::post('/leads', [LeadController::class, 'store']);
+    Route::post('/lead', [LeadController::class, 'addLead']);
+
+    Route::post('/savelead', [LeadController::class, 'updateLead']);
+
+    Route::post('/showleads', [LeadController::class, 'getLeads']);
+
+    Route::get('/showlead', [LeadController::class, 'getAllLeads']);
+
+    Route::post('/showleadbyid', [LeadController::class, 'getLeadById']);
+
+
 
 
 });
@@ -191,6 +205,8 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
     Route::post('/tasks_update/{id}', [PostController::class, 'update']);
 
     Route::post('/getUncompletedTasks', [PostController::class, 'getUncompletedTasks']); //get all uncompleted tasks of current user
+
+    Route::get('/getalltask', [PostController::class, 'getalltask']);
 
     // route to projects
     Route::get('/projects', [ProjectController::class, 'index']); //get all projects

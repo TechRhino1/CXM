@@ -17,48 +17,26 @@ class LeadController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function addLead(Request $request)
     {
         try {
-            $leads = Lead::all([
-                'id',
-                'companies_id',
-                'name',
-                'email',
-                'phone',
-                'date_created',
-                'date_last_followup',
-                'date_next_followup',
+
+                $validator = validator()->make($request->all(), [
+                'name' => 'required',
+                'email' => 'required',
+                'phone' => 'required',
+                'date_created' => 'required',
+                'date_last_followup' => 'required',
+                'date_next_followup' => 'required',
+                
             ]);
+            
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 401);
+            }else{
 
-            return $this->success($leads, 'A total of ' . $leads->count() . ' Lead(s) retrieved', 200);
-
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage(), 400);
-        }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        try {
             $addlead = Lead::create([
-                'companies_id' => $request->companiesid,
+                'companies_id' => $request->companies_id,
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -66,16 +44,17 @@ class LeadController extends Controller
                 'date_last_followup' => $request->date_last_followup,
                 'date_next_followup' => $request->date_next_followup,
             ]);
+        }
 
-            $addlead->save();
 
-            $addleadetails = LeadDetails::create([
+
+            $addlead = LeadDetails::create([
                 'leads_id' => $addlead->id,
-                'date_created' => $request->date_created,
+                'date_created' => date('Y-m-d'),
                 'comments' => $request->comments,
             ]);
 
-            $addleadetails->save();
+
 
             return $this->success($addlead, 'Lead added successfully', 200);
 
@@ -84,31 +63,29 @@ class LeadController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
 
-    public function update(Request $request)
+    public function updateLead(Request $request)
     {
         try{
             $id = Request('id');
             $lead = Lead::where('id', $id)->first();
-            $lead->companies_id = $request->companiesid;
-            $lead->name = $request->name;
-            $lead->email = $request->email;
-            $lead->phone = $request->phone;
-            $lead->date_created = $request->date_created;
-            $lead->date_last_followup = $request->date_last_followup;
-            $lead->date_next_followup = $request->date_next_followup;
-            $lead->save();
-
+            $lead->update([
+                'companies_id' => $request->companies_id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'date_created' => $request->date_created,
+                'date_last_followup' => $request->date_last_followup,
+                'date_next_followup' => $request->date_next_followup,
+                
+            ]);
             $leadetails = LeadDetails::where('leads_id', $id)->first();
-            $leadetails->date_created = $request->date_created;
-            $leadetails->comments = $request->comments;
-            $leadetails->save();
+            $leadetails->update([
+                'date_created' => $request->date_created,
+                'comments' => $request->comments,
+                
+            ]);
 
             return $this->success($lead, 'Lead updated successfully', 200);
 
@@ -117,25 +94,68 @@ class LeadController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+
+    public function getAllLeads()
     {
         try {
-            $lead = Lead::where('id', $id)->first();
 
-            $lead->delete();
+            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
+                ->get();
 
-            return $this->success($lead, 'Lead deleted successfully', 200);
-
-        } catch (\Exception $e) {
+            if ($leads->count() > 0) {
+                return $this->success($leads, 'A total of ' . $leads->count() . ' Lead(s) retrieved', 200);
+            } else {
+                return $this->success($leads, 'No detail(s) found');
+            }
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
     }
+
+    public function getLeads()
+    {
+        try {
+
+            $month = request('month');
+            $year = request('year');
+
+            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
+                ->whereMonth('lead.date_created', $month)->whereYear('lead.date_created', $year)
+                ->orderby('lead.date_created', 'desc')
+                ->get();
+
+            if ($leads->count() > 0) {
+                return $this->success($leads, 'A total of ' . $leads->count() . ' Lead(s) retrieved', 200);
+            } else {
+                return $this->success($leads, 'No detail(s) found');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getLeadById()
+    {
+        try {
+            $getleadid = request('id');
+            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
+                ->where('lead_details.leads_id', $getleadid)
+                ->select('lead.*', 'lead_details.*')
+                ->get();
+
+            //print_r($projects);
+
+            if ($leads->count() > 0) {
+                return $this->success($leads, ' detail(s) retrieved successfully');
+            } else {
+                return $this->success($leads, 'No details found');
+            }
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+
 
 
 }

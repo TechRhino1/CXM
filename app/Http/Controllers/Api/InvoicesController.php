@@ -21,11 +21,24 @@ class InvoicesController extends Controller
     public function index()
     {
         try{
-            //join the two tables
             $invoices = invoices:: join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
             ->select('invoices.*', 'invoice_details.*')
             ->get();
-            //$invoices = $invoices->selectRaw('CASE WHEN invoices.status = 0 THEN "Draft" WHEN invoices.status = 1 THEN "Approved" WHEN invoices.status = 2 THEN "Send" WHEN invoices.status = 4 THEN "Received" ELSE "Unknown" END AS status');
+            $invoices->map(function($invoice){
+                if($invoice->status == 0){
+                    $invoice->status = 'Draft';
+                }elseif($invoice->status == 1){
+                    $invoice->status = 'Approved';
+                }elseif($invoice->status == 2){
+                    $invoice->status = 'Send';
+                }elseif($invoice->status == 4){
+                    $invoice->status = 'Received';
+                }elseif($invoice->status == 5){
+                    $invoice->status = 'Unknown';
+                }
+                return $invoice;
+            });
+
 
             return $this->success($invoices, 'A total of ' . $invoices->count() . ' Invoice(s) retrieved', 200);
         }
@@ -136,9 +149,9 @@ class InvoicesController extends Controller
                 'date_received' => $request->date_received,
             ]);
             $updateinvoice = invoice_details::where('invoice_id', $id)->update([
-                // 'invoice_id' => $request->invoice_id,
-                // 'task_id' => $request->task_id,
-                // 'project_id' => $request->project_id,
+                'invoice_id' => $request->invoice_id,
+                'task_id' => $request->task_id,
+                'project_id' => $request->project_id,
                 'updated_comments' => $request->updated_comments,
                 'updated_time' => date('Y-m-d H:i:s'),
 
@@ -160,12 +173,104 @@ class InvoicesController extends Controller
     {
         try{
             $id = Request('id');
-            $deleteinvoice = invoices::where('id', $id)->delete();
-            $deleteinvoice = invoice_details::where('invoice_id', $id)->delete();
+            $deleteinvoice = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+            ->where('invoices.id', $id)
+            ->delete();
             return $this->success($deleteinvoice, 'Invoice deleted successfully');
         }
         catch(\Throwable $e){
             return $this->error($e->getMessage(), 500);
         }
     }
+    //get invoice by id
+    public function getInvoiceById(Request $request){
+        try{
+            $id = Request('id');
+            $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+            ->where('invoices.id', $id)
+            ->select('invoices.*', 'invoice_details.*')
+            ->get();
+            $invoices->map(function($invoice){
+                if($invoice->status == 0){
+                    $invoice->status = 'Draft';
+                }elseif($invoice->status == 1){
+                    $invoice->status = 'Approved';
+                }elseif($invoice->status == 2){
+                    $invoice->status = 'Send';
+                }elseif($invoice->status == 4){
+                    $invoice->status = 'Received';
+                }elseif($invoice->status == 5){
+                    $invoice->status = 'Unknown';
+                }
+                return $invoice;
+            });
+
+            return $this->success($invoices, 'Invoice retrieved successfully', 200);
+        }
+        catch(\Throwable $e){
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+    public function getInvoiceByMonthYear(Request $request){
+        try{
+            $month = Request('month');
+            $year = Request('year');
+            $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+            ->where('invoices.month', $month)->where('invoices.year', $year)
+            ->select('invoices.*', 'invoice_details.*')
+            ->get();
+            $invoices->map(function($invoice){
+                if($invoice->status == 0){
+                    $invoice->status = 'Draft';
+                }elseif($invoice->status == 1){
+                    $invoice->status = 'Approved';
+                }elseif($invoice->status == 2){
+                    $invoice->status = 'Send';
+                }elseif($invoice->status == 4){
+                    $invoice->status = 'Received';
+                }elseif($invoice->status == 5){
+                    $invoice->status = 'Unknown';
+                }
+                return $invoice;
+            });
+
+            return $this->success($invoices, 'Invoice retrieved successfully', 200);
+        }
+        catch(\Throwable $e){
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+    //generate invoice pdf for invoice id
+    // public function generateInvoicePdf(Request $request){
+    //     try{
+    //         $id = Request('id');
+    //         $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+    //         ->where('invoices.id', $id)
+    //         ->select('invoices.*', 'invoice_details.*')
+    //         ->get();
+    //         $invoices->map(function($invoice){
+    //             if($invoice->status == 0){
+    //                 $invoice->status = 'Draft';
+    //             }elseif($invoice->status == 1){
+    //                 $invoice->status = 'Approved';
+    //             }elseif($invoice->status == 2){
+    //                 $invoice->status = 'Send';
+    //             }elseif($invoice->status == 4){
+    //                 $invoice->status = 'Received';
+    //             }elseif($invoice->status == 5){
+    //                 $invoice->status = 'Unknown';
+    //             }
+    //             return $invoice;
+    //         });
+    //         $pdf = PDF::loadView('invoicepdf', compact('invoices'));
+    //         return $pdf->download('invoice.pdf');
+    //     }
+    //     catch(\Throwable $e){
+    //         return $this->error($e->getMessage(), 500);
+    //     }
+    // }
+
+
+
 }
