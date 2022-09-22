@@ -22,15 +22,16 @@ class LeadController extends Controller
         try {
 
                 $validator = validator()->make($request->all(), [
-                'name' => 'required',
-                'email' => 'required',
+                'name' => 'required|string|max:200',
+                'email' => 'required|email',
                 'phone' => 'required',
                 'date_created' => 'required',
                 'date_last_followup' => 'required',
                 'date_next_followup' => 'required',
-                
+                'comments' => 'required|string',
+
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->errors()], 401);
             }else{
@@ -40,20 +41,17 @@ class LeadController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'date_created' => $request->date_created,
+                'date_created' => $request->date('Y-m-d'),
                 'date_last_followup' => $request->date_last_followup,
                 'date_next_followup' => $request->date_next_followup,
             ]);
-        }
 
-
-
-            $addlead = LeadDetails::create([
+            $lead_details = LeadDetails::create([
                 'leads_id' => $addlead->id,
                 'date_created' => date('Y-m-d'),
                 'comments' => $request->comments,
             ]);
-
+        }
 
 
             return $this->success($addlead, 'Lead added successfully', 200);
@@ -63,7 +61,7 @@ class LeadController extends Controller
         }
     }
 
-    
+
 
     public function updateLead(Request $request)
     {
@@ -75,16 +73,15 @@ class LeadController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'date_created' => $request->date_created,
+                'date_created' => $request->date('Y-m-d'),
                 'date_last_followup' => $request->date_last_followup,
                 'date_next_followup' => $request->date_next_followup,
-                
+
             ]);
-            $leadetails = LeadDetails::where('leads_id', $id)->first();
-            $leadetails->update([
-                'date_created' => $request->date_created,
+            $lead_details = LeadDetails::create([
+                'leads_id' => $id,
+                'date_created' => date('Y-m-d'),
                 'comments' => $request->comments,
-                
             ]);
 
             return $this->success($lead, 'Lead updated successfully', 200);
@@ -99,8 +96,7 @@ class LeadController extends Controller
     {
         try {
 
-            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
-                ->get();
+            $leads = Lead::join('lead_details', 'leads.id', '=', 'lead_details.leads_id')->get();
 
             if ($leads->count() > 0) {
                 return $this->success($leads, 'A total of ' . $leads->count() . ' Lead(s) retrieved', 200);
@@ -119,9 +115,9 @@ class LeadController extends Controller
             $month = request('month');
             $year = request('year');
 
-            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
-                ->whereMonth('lead.date_created', $month)->whereYear('lead.date_created', $year)
-                ->orderby('lead.date_created', 'desc')
+            $leads = Lead::leftjoin('lead_details', 'leads.id', '=', 'lead_details.leads_id')
+                ->whereMonth('leads.date_created', $month)->whereYear('leads.date_created', $year)
+                ->orderby('leads.date_created', 'desc')
                 ->get();
 
             if ($leads->count() > 0) {
@@ -138,12 +134,13 @@ class LeadController extends Controller
     {
         try {
             $getleadid = request('id');
-            $leads = Lead::leftjoin('lead_details', 'lead.id', '=', 'lead_details.leads_id')
+            $leads = Lead::leftjoin('lead_details', 'leads.id', '=', 'lead_details.leads_id')
                 ->where('lead_details.leads_id', $getleadid)
-                ->select('lead.*', 'lead_details.*')
+                ->select('leads.*', 'lead_details.*')
+                ->orderby('lead_details.created_at', 'desc')
+                ->limit(1)
                 ->get();
 
-            //print_r($projects);
 
             if ($leads->count() > 0) {
                 return $this->success($leads, ' detail(s) retrieved successfully');

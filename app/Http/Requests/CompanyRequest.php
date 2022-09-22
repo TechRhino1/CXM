@@ -27,8 +27,8 @@ class CompanyRequest extends FormRequest
         return [
             'name' => 'required|string',
             'email' => 'required|email',
-            'phone' => 'required',
-           // 'logo' => 'required|image | mimes:jpeg,png,jpg,gif,svg | max:2048',
+            'phone' => 'required| min:10',
+            'logo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'bank_account_name' => 'required|string',
             'bank_account_number' => 'required|numeric',
             'bank_account_type' => 'required|string',

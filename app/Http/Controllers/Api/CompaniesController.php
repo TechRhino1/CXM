@@ -19,7 +19,6 @@ class CompaniesController extends Controller
     {
     try{
         $companies = companies::all();
-        //get logo path from storage_path('app/public/image') and add it to the companies array
         $companies->map(function($company){
             $company->logo = url("public/images/$company->logo");
             return $company;
@@ -51,7 +50,7 @@ class CompaniesController extends Controller
     {
        try{
            $logo = $request->file('logo');
-           $logo_name = time() . '.' . $logo->getClientOriginalExtension();
+           $logo_name = time().rand() . '.' . $logo->extension();
         $logo->move(public_path('/images'), $logo_name);
         $company = companies::create([
             'name' => $request->name,
@@ -114,7 +113,7 @@ class CompaniesController extends Controller
         try{
             $ID = request('id');
             $logo = $request->file('logo');
-            $logo_name = time() . '.' . $logo->getClientOriginalExtension();
+            $logo_name = time().rand() . '.' . $logo->extension();
             $logo->move(public_path('/images'), $logo_name);
             $company = companies::where('id', $ID)->update([
                 'name' => $request->name,

@@ -22,7 +22,11 @@ class InvoicesController extends Controller
     {
         try{
             $invoices = invoices:: join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-            ->select('invoices.*', 'invoice_details.*')
+            ->join('clients', 'invoices.client_id', '=', 'clients.ID')
+            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+            ->join('users', 'invoices.user_created', '=', 'users.ID')
+            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
             ->get();
             $invoices->map(function($invoice){
                 if($invoice->status == 0){
@@ -81,8 +85,6 @@ class InvoicesController extends Controller
                 'conversion_rate' => $data['conversion_rate'],
                 'date_received' => $data['date_received'],
             ]);
-
-          //get invoice id
             $invoice_id = $addinvoice->id;
 
             $addinvoice = invoice_details::create([
@@ -187,8 +189,12 @@ class InvoicesController extends Controller
         try{
             $id = Request('id');
             $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+            ->join('clients', 'invoices.client_id', '=', 'clients.ID')
+            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+            ->join('users', 'invoices.user_created', '=', 'users.ID')
+            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
             ->where('invoices.id', $id)
-            ->select('invoices.*', 'invoice_details.*')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
             ->get();
             $invoices->map(function($invoice){
                 if($invoice->status == 0){
@@ -217,8 +223,12 @@ class InvoicesController extends Controller
             $month = Request('month');
             $year = Request('year');
             $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+           ->join('clients', 'invoices.client_id', '=', 'clients.ID')
+            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+            ->join('users', 'invoices.user_created', '=', 'users.ID')
+            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
             ->where('invoices.month', $month)->where('invoices.year', $year)
-            ->select('invoices.*', 'invoice_details.*')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
             ->get();
             $invoices->map(function($invoice){
                 if($invoice->status == 0){
