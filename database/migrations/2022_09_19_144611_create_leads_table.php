@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone');
             $table->string('date_created');
-            $table->date('date_last_followup');
-            $table->datetime('date_next_followup');
+            $table->string('date_last_followup');
+            $table->string('date_next_followup');
             $table->timestamps();
         });
     }

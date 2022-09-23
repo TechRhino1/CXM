@@ -25,7 +25,6 @@ class LeadController extends Controller
                 'name' => 'required|string|max:200',
                 'email' => 'required|email',
                 'phone' => 'required',
-                'date_created' => 'required',
                 'date_last_followup' => 'required',
                 'date_next_followup' => 'required',
                 'comments' => 'required|string',
@@ -41,7 +40,7 @@ class LeadController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'date_created' => $request->date('Y-m-d'),
+                'date_created' => date('Y-m-d'),
                 'date_last_followup' => $request->date_last_followup,
                 'date_next_followup' => $request->date_next_followup,
             ]);
@@ -66,20 +65,20 @@ class LeadController extends Controller
     public function updateLead(Request $request)
     {
         try{
-            $id = Request('id');
+            $id = Request('leads_id');
             $lead = Lead::where('id', $id)->first();
             $lead->update([
                 'companies_id' => $request->companies_id,
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'date_created' => $request->date('Y-m-d'),
+                'date_created' => date('Y-m-d'),
                 'date_last_followup' => $request->date_last_followup,
                 'date_next_followup' => $request->date_next_followup,
 
             ]);
             $lead_details = LeadDetails::create([
-                'leads_id' => $id,
+                'leads_id' => $request->leads_id,
                 'date_created' => date('Y-m-d'),
                 'comments' => $request->comments,
             ]);
@@ -116,7 +115,9 @@ class LeadController extends Controller
             $year = request('year');
 
             $leads = Lead::leftjoin('lead_details', 'leads.id', '=', 'lead_details.leads_id')
+                ->join('companies', 'leads.companies_id','=','companies.id')
                 ->whereMonth('leads.date_created', $month)->whereYear('leads.date_created', $year)
+                ->select('leads.*','lead_details.*','companies.name as companies_name')
                 ->orderby('leads.date_created', 'desc')
                 ->get();
 
@@ -135,7 +136,7 @@ class LeadController extends Controller
         try {
             $getleadid = request('id');
             $leads = Lead::leftjoin('lead_details', 'leads.id', '=', 'lead_details.leads_id')
-                ->where('lead_details.leads_id', $getleadid)
+                ->where('lead_details.id', $getleadid)
                 ->select('leads.*', 'lead_details.*')
                 ->orderby('lead_details.created_at', 'desc')
                 ->limit(1)

@@ -26,22 +26,9 @@ class InvoicesController extends Controller
             ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
             ->join('users', 'invoices.user_created', '=', 'users.ID')
             ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
             ->get();
-            $invoices->map(function($invoice){
-                if($invoice->status == 0){
-                    $invoice->status = 'Draft';
-                }elseif($invoice->status == 1){
-                    $invoice->status = 'Approved';
-                }elseif($invoice->status == 2){
-                    $invoice->status = 'Send';
-                }elseif($invoice->status == 4){
-                    $invoice->status = 'Received';
-                }elseif($invoice->status == 5){
-                    $invoice->status = 'Unknown';
-                }
-                return $invoice;
-            });
+
 
 
             return $this->success($invoices, 'A total of ' . $invoices->count() . ' Invoice(s) retrieved', 200);
@@ -194,22 +181,9 @@ class InvoicesController extends Controller
             ->join('users', 'invoices.user_created', '=', 'users.ID')
             ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
             ->where('invoices.id', $id)
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
             ->get();
-            $invoices->map(function($invoice){
-                if($invoice->status == 0){
-                    $invoice->status = 'Draft';
-                }elseif($invoice->status == 1){
-                    $invoice->status = 'Approved';
-                }elseif($invoice->status == 2){
-                    $invoice->status = 'Send';
-                }elseif($invoice->status == 4){
-                    $invoice->status = 'Received';
-                }elseif($invoice->status == 5){
-                    $invoice->status = 'Unknown';
-                }
-                return $invoice;
-            });
+
 
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
         }
@@ -228,22 +202,8 @@ class InvoicesController extends Controller
             ->join('users', 'invoices.user_created', '=', 'users.ID')
             ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
             ->where('invoices.month', $month)->where('invoices.year', $year)
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as client name', 'tasks.Title as task name', 'users.Name as username', 'projects.Description as projectname')
+            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
             ->get();
-            $invoices->map(function($invoice){
-                if($invoice->status == 0){
-                    $invoice->status = 'Draft';
-                }elseif($invoice->status == 1){
-                    $invoice->status = 'Approved';
-                }elseif($invoice->status == 2){
-                    $invoice->status = 'Send';
-                }elseif($invoice->status == 4){
-                    $invoice->status = 'Received';
-                }elseif($invoice->status == 5){
-                    $invoice->status = 'Unknown';
-                }
-                return $invoice;
-            });
 
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
         }

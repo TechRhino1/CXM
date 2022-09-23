@@ -54,7 +54,6 @@ class ProjectController extends Controller
     {
         try {
             $project = Projects::create([
-
                 'Description' => $request->Description,
                 'UserID' => $request->UserID,
                 'ClientID' => $request->ClientID,
@@ -110,7 +109,22 @@ class ProjectController extends Controller
         try {
             $project = Projects::where('ID', $request->ID);
 
-            if ($project->update($request->all())) {
+            if ($project->update([
+                'Description' => $request->Description,
+                'UserID' => $request->UserID,
+                'ClientID' => $request->ClientID,
+                'Comments' => $request->Comments,
+                'InternalComments' => $request->InternalComments,
+                'Billing' => $request->Billing,
+                'StartDate' => $request->StartDate,
+                'EndDate' => $request->EndDate,
+                'TotalHours' => $request->TotalHours,
+                'TotalClientHours' => $request->TotalClientHours,
+                'HourlyINR' => $request->HourlyINR,
+                'BillingType' => $request->BillingType,
+                'Status' => $request->Status,
+                'Currency' => $request->Currency,
+            ])) {
                 return $this->success($project, 'Project updated successfully');
             } else {
                 return $this->error('Project not updated', 400);
