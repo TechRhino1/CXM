@@ -23,16 +23,22 @@ class StoreclientsRequest extends FormRequest
      */
     public function rules()
     {
+    try{
         return [
-            'companies_id' => 'required',
-            'name' => 'required|string',
-            'email' => 'required|email',
-            'phone' => 'required|string',
-            'leads_id' => 'required|string',
-            'Comments' => 'required|string',
-            'StaffID' => 'required|string',
-            'Status' => 'required|string',
+                'name' => 'required | string | max:255',
+                'email' => 'required | email',
+                'phone' => 'required | numeric',
+                'leads_id' => 'required | numeric',
+                'address' => 'required | string',
+                'comments' => 'required | string',
+                'staffid' => 'required | numeric',
+                'status' => 'required',
+                'companies_id' => 'required | numeric',
         ];
+    }
+    catch(\Throwable $e){
+        return $this->error($e->getMessage(), 400);
+    }
 
     }
 }

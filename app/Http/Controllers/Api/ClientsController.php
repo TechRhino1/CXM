@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clients;
+use App\Http\Requests\StoreclientsRequest;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 
@@ -55,7 +56,7 @@ class ClientsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreclientsRequest $request)
     {
         try {
 
@@ -105,7 +106,7 @@ class ClientsController extends Controller
      * @param  \App\Models\Clients  $clients
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreclientsRequest $request, $id)
     {
         try {
             $clientid = $id;

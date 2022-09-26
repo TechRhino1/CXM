@@ -48,13 +48,13 @@ class SignInOutController extends Controller
             $month = Request('month');
             $year = Request('year');
 
-            $signInOuts = SignInOut::whereMonth('created_at', $month)->whereYear('created_at', $year)
+            $signInOuts = SignInOut::whereMonth('EVENTDATE', $month)->whereYear('EVENTDATE', $year)
             ->orderby('EVENTDATE', 'desc')
             ->get();
 
             $count = $signInOuts->count();
 
-            return $this->success($signInOuts, message: ' A total of ' . $count . ' Leave Information(s) retrieved', status: 200);
+            return $this->success($signInOuts, message: ' A total of ' . $count . ' Sign In/Out retrieved', code: 200);
         } catch (\Throwable $e) {
 
             return $this->error($e->getMessage(), 400);

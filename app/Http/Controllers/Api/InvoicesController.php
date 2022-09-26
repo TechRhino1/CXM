@@ -61,9 +61,9 @@ class InvoicesController extends Controller
             $addinvoice = invoices::create([
                 'year' => $data['year'],
                 'month' => $data['month'],
-                'date_created' => $data['date_created'],
+                'date_created' => date('Y-m-d'),
                 'user_created' => $data['user_created'],
-                'invoice_date' => $data['invoice_date'],
+                'invoice_date' => date('Y-m-d'),
                 'client_id' => $data['client_id'],
                 'currency' => $data['currency'],
                 'amount' => $data['amount'],
@@ -126,9 +126,9 @@ class InvoicesController extends Controller
             $updateinvoice = invoices::where('id', $id)->update([
                 'year' => $request->year,
                 'month' => $request->month,
-                'date_created' => $request->date_created,
+                'date_created' => date('Y-m-d'),
                 'user_created' => $request->user_created,
-                'invoice_date' => $request->invoice_date,
+                'invoice_date' => date('Y-m-d'),
                 'client_id' => $request->client_id,
                 'currency' => $request->currency,
                 'amount' => $request->amount,
@@ -171,7 +171,7 @@ class InvoicesController extends Controller
             return $this->error($e->getMessage(), 500);
         }
     }
-    //get invoice by id
+
     public function getInvoiceById(Request $request){
         try{
             $id = Request('id');
@@ -182,9 +182,9 @@ class InvoicesController extends Controller
             ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
             ->where('invoices.id', $id)
             ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
+            ->orderBy('invoice_details.id', 'desc')
+            ->limit(1)
             ->get();
-
-
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
         }
         catch(\Throwable $e){
