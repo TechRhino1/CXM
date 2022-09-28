@@ -244,9 +244,9 @@ class ProjectController extends Controller
 
                     'userid' => $project->UserID,
 
-                    'totalworkhours' => floor($totalmins / 60) . ':' . ($totalmins % 60),
+                    'totalworkhours' => floor($totalmins / 60) . ' : ' . ($totalmins % 60),
 
-                    'totaluserworkhours' =>gmdate('i:s', $totalmanmins),
+                    'totaluserworkhours' => floor($totalmanmins / 60) . ' : ' . ($totalmanmins % 60),
 
                     'totalhours' => $project->TotalHours,
 
