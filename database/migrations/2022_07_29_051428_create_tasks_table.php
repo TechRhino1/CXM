@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('CompletedDate');
             $table->string('CompletedTime');
             $table->string('ParentID');
+            $table->string('deleted');
             $table->timestamps();
         });
     }

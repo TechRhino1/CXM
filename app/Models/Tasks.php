@@ -26,6 +26,7 @@ class Tasks extends Model
         'CompletedDate',
         'CompletedTime',
         'ParentID',
+        'deleted',
     ];
 
     protected $appends = [

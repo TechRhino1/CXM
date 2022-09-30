@@ -118,7 +118,7 @@ class LeadController extends Controller
                 ->join('companies', 'leads.companies_id','=','companies.id')
                 ->whereMonth('leads.date_created', $month)->whereYear('leads.date_created', $year)
                 ->select('leads.*','lead_details.*','companies.name as companies_name')
-                ->orderby('leads.date_created', 'desc')
+                ->orderby('lead_details.created_at', 'desc')
                 ->get();
 
             if ($leads->count() > 0) {

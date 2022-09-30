@@ -200,7 +200,7 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
 
     Route::post('/tasks', [PostController::class, 'store']);
 
-    Route::post('/tasks_delete/{id}', [PostController::class, 'destroy']);
+    Route::post('/tasks_delete', [PostController::class, 'destroy']);
 
     Route::post('/tasks_update/{id}', [PostController::class, 'update']);
 

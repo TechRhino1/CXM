@@ -27,10 +27,22 @@ class PostController extends Controller
             $userid = request('userid');
             $month = request('month');
             $year = request('year');
+            $user = auth()->user();
+            $role = $user->role;
+            if ($role == '0') {
+                $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->orderby('EstimatedDate', 'desc')
+                    ->get();
+            } else {
+                $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->where('deleted', '=', '0')
+                    ->orderby('EstimatedDate', 'desc')
+                    ->get();
+                foreach ($tasks as $task) {
+                    $task->deleted = ($task->deleted == '1' ? 'Deleted' : 'Not Deleted');
+                }
+            }
 
-            $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
-                ->orderby('EstimatedDate', 'desc')
-                ->get();
 
             if ($tasks->count() > 0) {
                 return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved', 200);
@@ -86,26 +98,30 @@ class PostController extends Controller
                 'ProjectID' => $request->ProjectID,
                 'UserID' => $user_id,
             ]);
+            if ($task) {
+                $user_id = $request->ID;
+                $tasktime = Tasks::where('CreaterID', $user_id)
+                    ->where('EstimatedDate', $request->EstimatedDate)
+                    ->where('deleted', '0')
+                    ->Select('EstimatedTime')
+                    ->get();
+                if ($tasktime->count() > 0) {
+                    foreach ($tasktime as $time) {
+                        $data = $time->EstimatedTime;
+                        $data = str_replace(':', '.', $data);
 
-            //UPDATE TotalTaskMins in signinout table
-            $data = $request->EstimatedTime;
-            $data = str_replace(':', '.', $data);
+                        if (!(strpos($data, '.') !== false)) $data = $data . '.0';
 
-            if (!(strpos($data, '.') !== false)) $data = $data . '.0';
+                        $d = explode(".", $data);
 
-            $d = explode(".", $data);
+                        $totalmanmins += $d[0] * 60 + $d[1];
+                    }
+                }
+                signinout::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
 
-            $totalmanmins += $d[0] * 60 + $d[1];
 
-            $user = auth()->user();
-            $role = $user->role;
-            if ($role == '1') {
-
-                $signinout = SignInOut::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->Select('TotalTaskMins')->get();
-                $totaltmin = $signinout[0]->TotalTaskMins;
-                signinout::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' =>  $totaltmin + $totalmanmins]);
+                return $this->success([$task], 'Task created successfully');
             }
-            return $this->success([$task], 'Task created successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
@@ -159,10 +175,10 @@ class PostController extends Controller
             ]);
 
             if ($tasks) {
-
                 $user_id = auth()->user()->ID;
                 $tasktime = Tasks::where('CreaterID', $user_id)
                     ->where('EstimatedDate', $request->EstimatedDate)
+                    ->where('deleted', '0')
                     ->Select('EstimatedTime')
                     ->get();
                 if ($tasktime->count() > 0) {
@@ -176,7 +192,6 @@ class PostController extends Controller
 
                         $totalmanmins += $d[0] * 60 + $d[1];
                     }
-
                 }
                 signinout::where('USERID', $user_id)->where('EVENTDATE', $request->EstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
 
@@ -195,16 +210,55 @@ class PostController extends Controller
      * @param  \App\Models\Tasks  $tasks
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Tasks $tasks)
     {
         try {
-            $todo = Tasks::find($id);
+            $user = auth()->user();
+            $role = $user->role;
+            $id = Request('ID');
+            $totalmanmins = 0;
+            if ($role == '0') {
 
-            if (!$todo) {
-                return $this->error('Task not found', 404);
-            } else {
-                $todo->delete();
-                return $this->success($todo, 'Task deleted successfully');
+                $tasks = Tasks::where('ID', $id)->delete();
+                if ($tasks) {
+                    return $this->success(message: 'Task deleted successfully');
+                }
+                return $this->error('Task not deleted', 500);
+            } elseif ($role == '1') {
+                $tasks = Tasks::where('ID', $id);
+                $tasks->update([
+                    'deleted' => 1,
+                    'updated_at' => date('Y-m-d'),
+                ]);
+                ///////////////////////////////////////////////
+                    $user_id = auth()->user()->ID;
+                   $getEstimatedDate = Tasks::where('ID', $id)->get('EstimatedDate');
+                     $getEstimatedDate = $getEstimatedDate[0]->EstimatedDate;
+                     $tasktime = Tasks::where('CreaterID', $user_id)
+                     ->where('EstimatedDate', $getEstimatedDate)
+                     ->where('deleted', '0')
+                     ->Select('EstimatedTime')
+                     ->get();
+                    if ($tasktime->count() > 0) {
+                        foreach ($tasktime as $time) {
+                            $data = $time->EstimatedTime;
+                            $data = str_replace(':', '.', $data);
+
+                            if (!(strpos($data, '.') !== false)) $data = $data . '.0';
+
+                            $d = explode(".", $data);
+
+                            $totalmanmins += $d[0] * 60 + $d[1];
+                        }
+                    }else{
+                        $totalmanmins = 00.00;
+                    }
+                    signinout::where('USERID', $user_id)->where('EVENTDATE', $getEstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
+                //////////////////////////////////////////
+                if ($tasks) {
+                    return $this->success(message: 'Task deleted successfully');
+                }
+                return $this->error('Task not deleted', 500);
             }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -233,7 +287,7 @@ class PostController extends Controller
     {
         try {
             $user_id = auth()->user()->ID;
-            $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '5')->orderby('EstimatedDate', 'desc')->get();
+            $tasks = Tasks::where('CreaterID', $user_id)->where('CurrentStatus', '!=', '5')->where('deleted', '=', '0')->orderby('EstimatedDate', 'desc')->get();
             return $this->success($tasks, 'A total of ' . $tasks->count() . ' Uncompleted Task(s) retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
@@ -255,8 +309,10 @@ class PostController extends Controller
 
             $month = request('month');
             $year = request('year');
+            $deleted = request('deleted');
 
             $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                ->where('deleted', $deleted)
                 ->orderby('EstimatedDate', 'desc')
                 ->get();
 
@@ -269,12 +325,11 @@ class PostController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
-    //get all tasks
     public function getalltask()
     {
         try {
             $tasks = Tasks::join('users', 'tasks.CreaterID', '=', 'users.ID')
-               ->select('tasks.*')
+                ->select('tasks.*')
                 ->get();
             return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved successfully');
         } catch (\Throwable $e) {
