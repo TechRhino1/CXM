@@ -57,6 +57,10 @@ class InvoicesController extends Controller
     public function store(StoreInvoiceRequest $request)
     {
         try{
+
+            // $projectid = Request('projectid');
+            // $project = Projects::where('ID', $projectid)->first();
+
             $data = $request->all();
             $addinvoice = invoices::create([
                 'year' => $data['year'],
@@ -65,6 +69,8 @@ class InvoicesController extends Controller
                 'user_created' => $data['user_created'],
                 'invoice_date' => date('Y-m-d'),
                 'client_id' => $data['client_id'],
+                // 'invoice_date' => $data['invoice_date'],
+                // 'client_id' => $project->ClientID,
                 'currency' => $data['currency'],
                 'amount' => $data['amount'],
                 'status' => $data['status'],

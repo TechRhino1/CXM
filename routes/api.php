@@ -56,6 +56,9 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
 
     Route::post('/updateuser', [SignInOutController::class, 'updateuser']);
 
+    //tasks for invoice
+    Route::post('/gettaskbypid', [PostController::class, 'getalltaskbyprojectid']);
+    Route::get('/getalltask', [PostController::class, 'getalltask']);
     //route to Projects
 
     Route::post('/projects', [ProjectController::class, 'store']);
@@ -113,6 +116,7 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/getInvoiceDetails', [InvoicesController::class, 'getInvoiceByMonthYear']);
 
     Route::post('/getInvoiceDetailsbyid', [InvoicesController::class, 'getInvoiceById']);
+
 
     //route to leads
 
@@ -206,7 +210,6 @@ Route::group(['middleware' => ['jwt.role:1,0', 'jwt.auth'], 'prefix' => 'user'],
 
     Route::post('/getUncompletedTasks', [PostController::class, 'getUncompletedTasks']); //get all uncompleted tasks of current user
 
-    Route::get('/getalltask', [PostController::class, 'getalltask']);
 
     // route to projects
     Route::get('/projects', [ProjectController::class, 'index']); //get all projects

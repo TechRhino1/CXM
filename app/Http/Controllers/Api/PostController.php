@@ -325,13 +325,38 @@ class PostController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
-    public function getalltask()
+    //for invoice
+
+    public function getalltask() //not in use
     {
         try {
             $tasks = Tasks::join('users', 'tasks.CreaterID', '=', 'users.ID')
                 ->select('tasks.*')
                 ->get();
             return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
+    public function getalltaskbyprojectid()
+    {
+        try {
+            $month = request('month');
+            $year = request('year');
+            $project_id = request('projectid');
+            $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                ->join('projects',function ($join) use ($project_id) {
+                    $join->on('tasks.ProjectID', '=', 'projects.ID')
+                    ->where('projects.ID', '=', $project_id);
+                })
+                ->orderby('EstimatedDate', 'desc')
+                ->get();
+
+            if ($tasks->count() > 0) {
+                return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved', 200);
+            } else {
+                return $this->success($tasks, 'No Task(s) found');
+            }
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
