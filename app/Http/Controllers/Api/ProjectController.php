@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Projects;
 use App\Models\Projectusers;
+use App\Models\Clients;
 use App\Models\Tasks;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
@@ -23,7 +24,10 @@ class ProjectController extends Controller
     public function index()
     {
         try {
-            $projects = Projects::orderBy('projects.Description', 'asc')->get();
+            $projects = Projects::orderBy('projects.Description', 'asc')
+                 ->leftjoin('clients', 'projects.ClientID', '=', 'clients.ID')
+                ->select('projects.*', 'clients.Name as clientname')
+                ->get();
             if ($projects->count() > 0) {
                 return $this->success($projects, message: ' A total of ' . $projects->count() . ' Project(s) retrieved');
             } else {

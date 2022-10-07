@@ -57,8 +57,7 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/updateuser', [SignInOutController::class, 'updateuser']);
 
     //tasks for invoice
-    Route::post('/gettaskbypid', [PostController::class, 'getalltaskbyprojectid']);
-    Route::get('/getalltask', [PostController::class, 'getalltask']);
+    // Route::get('/getalltask', [PostController::class, 'getalltask']);
     //route to Projects
 
     Route::post('/projects', [ProjectController::class, 'store']);
@@ -114,6 +113,8 @@ Route::group(['middleware' => ['jwt.role:0', 'jwt.auth'], 'prefix' => 'user'], f
     Route::post('/invoices_update/{id}', [InvoicesController::class, 'update']);
 
     Route::post('/getInvoiceDetails', [InvoicesController::class, 'getInvoiceByMonthYear']);
+
+    Route::post('/gettaskbypid', [PostController::class, 'getalltaskbyprojectid']);
 
     Route::post('/getInvoiceDetailsbyid', [InvoicesController::class, 'getInvoiceById']);
 

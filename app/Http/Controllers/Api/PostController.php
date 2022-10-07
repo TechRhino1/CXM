@@ -12,6 +12,7 @@ use App\Models\Projectusers;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -325,30 +326,35 @@ class PostController extends Controller
             return $this->error($e->getMessage(), 400);
         }
     }
-    //for invoice
-
-    public function getalltask() //not in use
-    {
-        try {
-            $tasks = Tasks::join('users', 'tasks.CreaterID', '=', 'users.ID')
-                ->select('tasks.*')
-                ->get();
-            return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved successfully');
-        } catch (\Throwable $e) {
-            return $this->error($e->getMessage(), 400);
-        }
-    }
+    //inv
     public function getalltaskbyprojectid()
     {
         try {
             $month = request('month');
             $year = request('year');
             $project_id = request('projectid');
+            /////////////////////////////////
+        $totaltaskmins = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+            ->join('projects',function ($join) use ($project_id) {
+                $join->on('tasks.ProjectID', '=', 'projects.ID')
+                ->where('projects.ID', '=', $project_id);
+            })
+            ->where('tasks.deleted', '0')
+            ->sum('EstimatedTime');
+
+        $totaltaskmins = str_replace(':', '.', $totaltaskmins);
+        if (!(strpos($totaltaskmins, '.') !== false)) $totaltaskmins = $totaltaskmins . '.0';
+        $d = explode(".", $totaltaskmins);
+        $totaltaskmins = $d[0] * 60 + $d[1];
+        $totaltaskmins = $totaltaskmins / 60;
+
+//////////////////////////////////////////////////////////////////
             $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
                 ->join('projects',function ($join) use ($project_id) {
                     $join->on('tasks.ProjectID', '=', 'projects.ID')
                     ->where('projects.ID', '=', $project_id);
                 })
+                ->select('tasks.*','projects.ClientID', DB::raw( $totaltaskmins . ' as totaltaskmins'))
                 ->orderby('EstimatedDate', 'desc')
                 ->get();
 

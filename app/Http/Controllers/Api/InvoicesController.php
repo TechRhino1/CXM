@@ -58,35 +58,46 @@ class InvoicesController extends Controller
     {
         try{
 
-            // $projectid = Request('projectid');
-            // $project = Projects::where('ID', $projectid)->first();
+            $projectid = Request('project_id');
+            $project = Projects::where('ID', $projectid)->first();
 
-            $data = $request->all();
+            $data[] = $request->all();
             $addinvoice = invoices::create([
-                'year' => $data['year'],
-                'month' => $data['month'],
+                'year' => $data[0]['year'],
+                'month' => $data[0]['month'],
                 'date_created' => date('Y-m-d'),
-                'user_created' => $data['user_created'],
-                'invoice_date' => date('Y-m-d'),
-                'client_id' => $data['client_id'],
-                // 'invoice_date' => $data['invoice_date'],
-                // 'client_id' => $project->ClientID,
-                'currency' => $data['currency'],
-                'amount' => $data['amount'],
-                'status' => $data['status'],
-                'amount_received' => $data['amount_received'],
-                'conversion_rate' => $data['conversion_rate'],
-                'date_received' => $data['date_received'],
+                'user_created' => auth()->user()->ID,
+                //'invoice_date' => date('Y-m-d'),
+                //'client_id' => $data['client_id'],
+                'invoice_date' => $data[0]['invoice_date'],
+                'client_id' => $project->ClientID,
+                'currency' => $data[0]['currency'],
+                'amount' => $data[0]['amount'],
+                'status' => $data[0]['status'],
+                'amount_received' => $data[0]['amount_received'],
+                'conversion_rate' => $data[0]['conversion_rate'],
+                'date_received' => $data[0]['date_received'],
             ]);
             $invoice_id = $addinvoice->id;
 
-            $addinvoice = invoice_details::create([
-                'invoice_id' => $invoice_id,
-                'task_id' => $data['task_id'],
-                'project_id' => $data['project_id'],
-                'updated_comments' => $data['updated_comments'],
-                'updated_time' => $data['updated_time'],
-            ]);
+
+      foreach($data as $value){
+        $addinvoice = invoice_details::create([
+            'invoice_id' => $invoice_id,
+            'task_id' => $value['task_id'],
+            'project_id' => $value['project_id'],
+            'updated_comments' => $value['updated_comments'],
+           // 'updated_time' => $value['updated_time'],
+        ]);
+        }
+
+            // $addinvoice = invoice_details::create([
+            //     'invoice_id' => $invoice_id,
+            //     'task_id' => $data['task_id'],
+            //     'project_id' => $data['project_id'],
+            //     'updated_comments' => $data['updated_comments'],
+            //     'updated_time' => $data['updated_time'],
+            // ]);
             return $this->success($addinvoice, 'New Invoice created successfully', 201);
 
         }
@@ -134,7 +145,7 @@ class InvoicesController extends Controller
                 'month' => $request->month,
                 'date_created' => date('Y-m-d'),
                 'user_created' => $request->user_created,
-                'invoice_date' => date('Y-m-d'),
+                'invoice_date' => $request->invoice_date,
                 'client_id' => $request->client_id,
                 'currency' => $request->currency,
                 'amount' => $request->amount,
@@ -143,12 +154,13 @@ class InvoicesController extends Controller
                 'conversion_rate' => $request->conversion_rate,
                 'date_received' => $request->date_received,
             ]);
+
             $updateinvoice = invoice_details::where('invoice_id', $id)->update([
                 'invoice_id' => $request->invoice_id,
                 'task_id' => $request->task_id,
                 'project_id' => $request->project_id,
                 'updated_comments' => $request->updated_comments,
-                'updated_time' => date('Y-m-d H:i:s'),
+                'updated_time' => date('H:i:s'),
 
             ]);
             return $this->success($updateinvoice, 'Invoice updated successfully', 200);
@@ -202,13 +214,13 @@ class InvoicesController extends Controller
         try{
             $month = Request('month');
             $year = Request('year');
-            $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-           ->join('clients', 'invoices.client_id', '=', 'clients.ID')
+            $invoices = invoices::leftjoin('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+            ->where('invoices.month', $month)->where('invoices.year', $year)
+            ->leftjoin('clients', 'invoices.client_id', '=', 'clients.ID')
             ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
             ->join('users', 'invoices.user_created', '=', 'users.ID')
             ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
-            ->where('invoices.month', $month)->where('invoices.year', $year)
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
+            ->select('invoices.*', 'invoice_details.updated_comments', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
             ->get();
 
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
@@ -216,6 +228,7 @@ class InvoicesController extends Controller
         catch(\Throwable $e){
             return $this->error($e->getMessage(), 500);
         }
+
     }
     //generate invoice pdf for invoice id
     // public function generateInvoicePdf(Request $request){

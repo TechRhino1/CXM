@@ -50,8 +50,12 @@ class CompaniesController extends Controller
     {
        try{
            $logo = $request->file('logo');
+         //  if (isset($logo)){
            $logo_name = time().rand() . '.' . $logo->extension();
         $logo->move(public_path('/images'), $logo_name);
+    // }else{
+    //     $logo_name = "No Image";
+    // }
         $company = companies::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -113,8 +117,12 @@ class CompaniesController extends Controller
         try{
             $ID = request('id');
             $logo = $request->file('logo');
+           // if (isset($logo)){
             $logo_name = time().rand() . '.' . $logo->extension();
             $logo->move(public_path('/images'), $logo_name);
+        // }else{
+        //     $logo_name = "No Image";
+        // }
             $company = companies::where('id', $ID)->update([
                 'name' => $request->name,
                 'email' => $request->email,

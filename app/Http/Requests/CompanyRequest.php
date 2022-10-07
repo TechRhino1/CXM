@@ -29,7 +29,7 @@ class CompanyRequest extends FormRequest
             'email' => 'required|email',
             'phone' => 'required',
             'logo' => 'required|mimes:jpeg,png,jpg,gif,svg',
-           // 'logo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+           // 'logo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048 | nullable',
             'bank_account_name' => 'required|string',
             'bank_account_number' => 'required|numeric',
             'bank_account_type' => 'required|string',
