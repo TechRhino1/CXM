@@ -10,6 +10,8 @@ use App\Models\Projects;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use App\Http\Requests\StoreInvoiceRequest;
+use Illuminate\Support\Facades\DB;
+
 class InvoicesController extends Controller
 {
     use ApiResponser;
@@ -20,20 +22,19 @@ class InvoicesController extends Controller
      */
     public function index()
     {
-        try{
-            $invoices = invoices:: join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-            ->join('clients', 'invoices.client_id', '=', 'clients.ID')
-            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
-            ->join('users', 'invoices.user_created', '=', 'users.ID')
-            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
-            ->get();
+        try {
+            $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+                ->join('clients', 'invoices.client_id', '=', 'clients.ID')
+                ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+                ->join('users', 'invoices.user_created', '=', 'users.ID')
+                ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
+                ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
+                ->get();
 
 
 
             return $this->success($invoices, 'A total of ' . $invoices->count() . ' Invoice(s) retrieved', 200);
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 400);
         }
     }
@@ -56,40 +57,57 @@ class InvoicesController extends Controller
      */
     public function store(StoreInvoiceRequest $request)
     {
-        try{
+        try {
 
             $projectid = Request('project_id');
             $project = Projects::where('ID', $projectid)->first();
 
-            $data[] = $request->all();
+            $data = $request->all();
             $addinvoice = invoices::create([
-                'year' => $data[0]['year'],
-                'month' => $data[0]['month'],
+                'year' => $data['year'],
+                'month' => $data['month'],
                 'date_created' => date('Y-m-d'),
                 'user_created' => auth()->user()->ID,
                 //'invoice_date' => date('Y-m-d'),
-                //'client_id' => $data['client_id'],
-                'invoice_date' => $data[0]['invoice_date'],
+                // 'client_id' => $data['client_id'],
+                'invoice_date' => $data['invoice_date'],
                 'client_id' => $project->ClientID,
-                'currency' => $data[0]['currency'],
-                'amount' => $data[0]['amount'],
-                'status' => $data[0]['status'],
-                'amount_received' => $data[0]['amount_received'],
-                'conversion_rate' => $data[0]['conversion_rate'],
-                'date_received' => $data[0]['date_received'],
+                'currency' => $data['currency'],
+                'amount' => $data['amount'],
+                'status' => $data['status'],
+                'amount_received' => $data['amount_received'],
+                'conversion_rate' => $data['conversion_rate'],
+                'date_received' => $data['date_received'],
             ]);
             $invoice_id = $addinvoice->id;
 
+            $data1 = $data['task'];
 
-      foreach($data as $value){
-        $addinvoice = invoice_details::create([
-            'invoice_id' => $invoice_id,
-            'task_id' => $value['task_id'],
-            'project_id' => $value['project_id'],
-            'updated_comments' => $value['updated_comments'],
-           // 'updated_time' => $value['updated_time'],
-        ]);
-        }
+            foreach ($data1 as $data2) {
+                $addinvoice = invoice_details::create([
+
+                    'invoice_id' => $invoice_id,
+                    'task_id' => $data2['task_id'],
+                    'project_id' => $data['project_id'],
+                    'updated_comments' => $data2['updated_comments'],
+                    'updated_time' => $data2['updated_time'],
+                ]);
+            }
+
+            //     return $this->success($addinvoice, 'Invoice created successfully', 200);
+            // }
+            // catch(\Throwable $e){
+            //     return $this->error($e->getMessage(), 400);
+            // }
+            //   foreach($data as $value){
+            //     $addinvoice = invoice_details::create([
+            //         'invoice_id' => $invoice_id,
+            //         'task_id' => $value['task_id'],
+            //         'project_id' => $value['project_id'],
+            //         'updated_comments' => $value['updated_comments'],
+            //        // 'updated_time' => $value['updated_time'],
+            //     ]);
+            //     }
 
             // $addinvoice = invoice_details::create([
             //     'invoice_id' => $invoice_id,
@@ -99,9 +117,7 @@ class InvoicesController extends Controller
             //     'updated_time' => $data['updated_time'],
             // ]);
             return $this->success($addinvoice, 'New Invoice created successfully', 201);
-
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }
@@ -137,9 +153,9 @@ class InvoicesController extends Controller
      */
     public function update(StoreInvoiceRequest $request, invoices $invoices)
     {
-         try{
-            $id = Request('id');
-
+        try {
+            $id =$request->id;
+    //  dd($id);
             $updateinvoice = invoices::where('id', $id)->update([
                 'year' => $request->year,
                 'month' => $request->month,
@@ -155,19 +171,32 @@ class InvoicesController extends Controller
                 'date_received' => $request->date_received,
             ]);
 
-            $updateinvoice = invoice_details::where('invoice_id', $id)->update([
-                'invoice_id' => $request->invoice_id,
-                'task_id' => $request->task_id,
-                'project_id' => $request->project_id,
-                'updated_comments' => $request->updated_comments,
-                'updated_time' => date('H:i:s'),
-
-            ]);
-            return $this->success($updateinvoice, 'Invoice updated successfully', 200);
-         }
-            catch(\Throwable $e){
-                return $this->error($e->getMessage(), 500);
+            $data = $request->all();
+            $data1 = $data['task'];
+            foreach ($data1 as $data2) {
+                $updateinvoice = invoice_details::where('invoice_id', $id)
+               ->where('task_id', $data2['task_id'])
+                ->update([
+                    //'invoice_id' => $request->invoice_id,
+                    //'task_id' => $data2['task_id'],
+                    //'project_id' => $data['project_id'],
+                    'updated_comments' => $data2['updated_comments'],
+                    'updated_time' => $data2['updated_time'],
+                ]);
             }
+
+            // $updateinvoice = invoice_details::where('invoice_id', $id)->update([
+            //     'invoice_id' => $request->invoice_id,
+            //     'task_id' => $request->task_id,
+            //     'project_id' => $request->project_id,
+            //     'updated_comments' => $request->updated_comments,
+            //     'updated_time' => date('H:i:s'),
+
+            // ]);
+            return $this->success($updateinvoice, 'Invoice updated successfully', 200);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -178,57 +207,58 @@ class InvoicesController extends Controller
      */
     public function destroy(invoices $invoices)
     {
-        try{
+        try {
             $id = Request('id');
             $deleteinvoice = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-            ->where('invoices.id', $id)
-            ->delete();
+                ->where('invoices.id', $id)
+                ->delete();
             return $this->success($deleteinvoice, 'Invoice deleted successfully');
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }
 
-    public function getInvoiceById(Request $request){
-        try{
+    public function getInvoiceById(Request $request)
+    {
+        try {
             $id = Request('id');
-            $invoices = invoices::join('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-            ->join('clients', 'invoices.client_id', '=', 'clients.ID')
-            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
-            ->join('users', 'invoices.user_created', '=', 'users.ID')
-            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
-            ->where('invoices.id', $id)
-            ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
-            ->orderBy('invoice_details.id', 'desc')
-            ->limit(1)
-            ->get();
+            //
+            $invoices = invoices::rightjoin('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+                ->leftjoin('clients', 'invoices.client_id', '=', 'clients.ID')
+                ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+                ->join('users', 'invoices.user_created', '=', 'users.ID')
+                ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
+                ->where('invoices.id', $id)
+                ->select('invoices.*', 'invoice_details.*', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
+                ->orderBy('invoice_details.id', 'desc')
+               // ->limit(1)
+                ->get();
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
     }
 
-    public function getInvoiceByMonthYear(Request $request){
-        try{
+    public function getInvoiceByMonthYear(Request $request)
+    {
+        try {
             $month = Request('month');
             $year = Request('year');
-            $invoices = invoices::leftjoin('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
-            ->where('invoices.month', $month)->where('invoices.year', $year)
-            ->leftjoin('clients', 'invoices.client_id', '=', 'clients.ID')
-            ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
-            ->join('users', 'invoices.user_created', '=', 'users.ID')
-            ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
-            ->select('invoices.*', 'invoice_details.updated_comments', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
-            ->get();
+            DB::statement("SET SQL_MODE=''");
+            $invoices = invoices::rightjoin('invoice_details', 'invoices.id', '=', 'invoice_details.invoice_id')
+                ->whereMonth('invoice_date', $month)->whereYear('invoice_date', $year)
+                ->leftjoin('clients', 'invoices.client_id', '=', 'clients.ID')
+                ->join('tasks', 'invoice_details.task_id', '=', 'tasks.ID')
+                ->join('users', 'invoices.user_created', '=', 'users.ID')
+                ->join('projects', 'invoice_details.project_id', '=', 'projects.ID')
+                ->select('invoices.*', 'invoice_details.updated_comments', 'clients.Name as clientname', 'tasks.Title as taskname', 'users.Name as username', 'projects.Description as projectname')
+                ->groupBy('invoices.id')
+                ->get();
 
             return $this->success($invoices, 'Invoice retrieved successfully', 200);
-        }
-        catch(\Throwable $e){
+        } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
-
     }
     //generate invoice pdf for invoice id
     // public function generateInvoicePdf(Request $request){

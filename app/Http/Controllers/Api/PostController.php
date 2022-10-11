@@ -9,6 +9,8 @@ use App\Models\SignInOut;
 use App\Models\Status;
 use App\Models\Priority;
 use App\Models\Projectusers;
+use App\Models\invoices;
+use App\Models\invoice_details;
 use Illuminate\Console\View\Components\Task;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
@@ -30,10 +32,20 @@ class PostController extends Controller
             $year = request('year');
             $user = auth()->user();
             $role = $user->role;
+            $deleted = request('deleted');
             if ($role == '0') {
-                $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                if($deleted == '1'){
+                    $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->where('deleted', '=', '1')
                     ->orderby('EstimatedDate', 'desc')
                     ->get();
+                }else{
+                    $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->where('deleted', '=', '0')
+                    ->orderby('EstimatedDate', 'desc')
+                    ->get();
+                }
+
             } else {
                 $tasks = Tasks::where('CreaterID', $userid)->whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
                     ->where('deleted', '=', '0')
@@ -43,6 +55,8 @@ class PostController extends Controller
                     $task->deleted = ($task->deleted == '1' ? 'Deleted' : 'Not Deleted');
                 }
             }
+
+
 
 
             if ($tasks->count() > 0) {
@@ -232,29 +246,29 @@ class PostController extends Controller
                     'updated_at' => date('Y-m-d'),
                 ]);
                 ///////////////////////////////////////////////
-                    $user_id = auth()->user()->ID;
-                   $getEstimatedDate = Tasks::where('ID', $id)->get('EstimatedDate');
-                     $getEstimatedDate = $getEstimatedDate[0]->EstimatedDate;
-                     $tasktime = Tasks::where('CreaterID', $user_id)
-                     ->where('EstimatedDate', $getEstimatedDate)
-                     ->where('deleted', '0')
-                     ->Select('EstimatedTime')
-                     ->get();
-                    if ($tasktime->count() > 0) {
-                        foreach ($tasktime as $time) {
-                            $data = $time->EstimatedTime;
-                            $data = str_replace(':', '.', $data);
+                $user_id = auth()->user()->ID;
+                $getEstimatedDate = Tasks::where('ID', $id)->get('EstimatedDate');
+                $getEstimatedDate = $getEstimatedDate[0]->EstimatedDate;
+                $tasktime = Tasks::where('CreaterID', $user_id)
+                    ->where('EstimatedDate', $getEstimatedDate)
+                    ->where('deleted', '0')
+                    ->Select('EstimatedTime')
+                    ->get();
+                if ($tasktime->count() > 0) {
+                    foreach ($tasktime as $time) {
+                        $data = $time->EstimatedTime;
+                        $data = str_replace(':', '.', $data);
 
-                            if (!(strpos($data, '.') !== false)) $data = $data . '.0';
+                        if (!(strpos($data, '.') !== false)) $data = $data . '.0';
 
-                            $d = explode(".", $data);
+                        $d = explode(".", $data);
 
-                            $totalmanmins += $d[0] * 60 + $d[1];
-                        }
-                    }else{
-                        $totalmanmins = 00.00;
+                        $totalmanmins += $d[0] * 60 + $d[1];
                     }
-                    signinout::where('USERID', $user_id)->where('EVENTDATE', $getEstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
+                } else {
+                    $totalmanmins = 00.00;
+                }
+                signinout::where('USERID', $user_id)->where('EVENTDATE', $getEstimatedDate)->update(['TotalTaskMins' => $totalmanmins]);
                 //////////////////////////////////////////
                 if ($tasks) {
                     return $this->success(message: 'Task deleted successfully');
@@ -333,30 +347,62 @@ class PostController extends Controller
             $month = request('month');
             $year = request('year');
             $project_id = request('projectid');
-            /////////////////////////////////
-        $totaltaskmins = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
-            ->join('projects',function ($join) use ($project_id) {
-                $join->on('tasks.ProjectID', '=', 'projects.ID')
-                ->where('projects.ID', '=', $project_id);
-            })
-            ->where('tasks.deleted', '0')
-            ->sum('EstimatedTime');
-
-        $totaltaskmins = str_replace(':', '.', $totaltaskmins);
-        if (!(strpos($totaltaskmins, '.') !== false)) $totaltaskmins = $totaltaskmins . '.0';
-        $d = explode(".", $totaltaskmins);
-        $totaltaskmins = $d[0] * 60 + $d[1];
-        $totaltaskmins = $totaltaskmins / 60;
-
-//////////////////////////////////////////////////////////////////
-            $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
-                ->join('projects',function ($join) use ($project_id) {
-                    $join->on('tasks.ProjectID', '=', 'projects.ID')
-                    ->where('projects.ID', '=', $project_id);
-                })
-                ->select('tasks.*','projects.ClientID', DB::raw( $totaltaskmins . ' as totaltaskmins'))
-                ->orderby('EstimatedDate', 'desc')
+            /////////////////////////////////-----ddd-------//////////////////////////////////////////////////////
+            $check = invoice_details::where('project_id', $project_id)
+                ->whereMonth('created_at', $month)->whereYear('created_at', $year)
                 ->get();
+                //////////////////-----ddd-------////////////////
+                $totaltaskmins = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->join('projects', function ($join) use ($project_id) {
+                        $join->on('tasks.ProjectID', '=', 'projects.ID')
+                            ->where('projects.ID', '=', $project_id);
+                    })
+                    ->where('tasks.deleted', '0')
+                    ->sum('EstimatedTime');
+
+                $totaltaskmins = str_replace(':', '.', $totaltaskmins);
+                if (!(strpos($totaltaskmins, '.') !== false)) $totaltaskmins = $totaltaskmins . '.0';
+                $d = explode(".", $totaltaskmins);
+                $totaltaskmins = $d[0] * 60 + $d[1];
+                $totaltaskmins = $totaltaskmins / 60;
+
+                //////////////////////////////////////////////////////////////////
+                $tasks = Tasks::whereMonth('EstimatedDate', $month)->whereYear('EstimatedDate', $year)
+                    ->join('projects', function ($join) use ($project_id) {
+                        $join->on('tasks.ProjectID', '=', 'projects.ID')
+                            ->where('projects.ID', '=', $project_id);
+                    })
+                    ->select('tasks.*', 'projects.ClientID', DB::raw($totaltaskmins . ' as totaltaskmins'))
+                    ->orderby('EstimatedDate', 'desc')
+                    ->get();
+                    if ($check->count() > 0) {
+                        $totalinvoicemins = invoice_details::whereMonth('invoices.invoice_date', $month)->whereYear('invoices.invoice_date', $year)
+                        ->leftjoin ('invoices', function ($join) use ($project_id) {
+                            $join->on('invoice_details.invoice_id', '=', 'invoices.ID')
+                                ->where('invoice_details.project_id', '=', $project_id);
+                        })
+                        //->where('project_id', $project_id)
+                        ->sum('updated_time');
+
+                        $totalinvoicemins = str_replace(':', '.', $totalinvoicemins);
+                        if (!(strpos($totalinvoicemins, '.') !== false)) $totalinvoicemins = $totalinvoicemins . '.0';
+                        $d = explode(".", $totalinvoicemins);
+                        $totalinvoicemins = $d[0] * 60 + $d[1];
+                        $totalinvoicemins = $totalinvoicemins / 60;
+                       // $totalinvoicemins = date('H:i', mktime(0, $totalinvoicemins));
+                      //  dd($totalinvoicemins);
+
+                        foreach ($tasks as $task) {
+                            foreach ($check as $change) {
+                                if ($task->ID == $change->task_id) {
+                                    $task->Description = $change->updated_comments;
+                                    $task->EstimatedTime = $change->updated_time;
+                                    $task->totalinvoicemins = $totalinvoicemins;
+                                }
+                            }
+                        }
+
+                    }
 
             if ($tasks->count() > 0) {
                 return $this->success($tasks, 'A total of ' . $tasks->count() . ' Task(s) retrieved', 200);

@@ -28,7 +28,7 @@ class StoreInvoiceRequest extends FormRequest
             'month' => 'required',
            // 'date_created' => 'required',
           //  'user_created' => 'required',
-           // 'invoice_date' => 'required',
+            'invoice_date' => 'required',
            // 'client_id' => 'required',
             'currency' => 'required',
             'amount' => 'required',
